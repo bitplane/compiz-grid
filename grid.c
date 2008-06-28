@@ -1,9 +1,10 @@
 /*
  * Stephen Kennedy <suasol@gmail.com>
- * compiz-grid v0.1
  * 
  * compiz-fusion plugin to act like winsplit revolution (http://www.winsplit-revolution.com/)
  * use <Control><Alt>NUMPAD_KEY to move and tile your windows.
+ * 
+ * Press the tiling keys several times to cycle through some tiling options.
  */
 
 #include <compiz-core.h>
@@ -106,6 +107,11 @@ gridCommon(CompDisplay     *compdisplay,
 		desired.x =  workarea.x + props.gravityRight * (workarea.width / props.numCellsX);
 		desired.width = workarea.width / props.numCellsX;
 
+		// TODO:
+		// * handle size increment hints correctly
+		// * read and use minimum size hints
+		// * second '8' '5' and '2' keypresses fit window into the middle third.
+
 		int winc = 1;
 		int hinc = 1;
 		if( cw->sizeHints.flags & PResizeInc )
@@ -153,6 +159,7 @@ gridCommon(CompDisplay     *compdisplay,
 		{
 			sendSyncRequest (cw);
 		}
+		//TODO: animate move+resize
 		configureXWindow (cw, mask, &xwc);
 	}
 
