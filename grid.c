@@ -159,6 +159,10 @@ gridCommon(CompDisplay     *compdisplay,
 		{
 			sendSyncRequest (cw);
 		}
+		if( cw->state & MAXIMIZE_STATE )
+		{
+			maximizeWindow(cw,0); // max state interferes with us, clear it
+		}
 		//TODO: animate move+resize
 		configureXWindow (cw, mask, &xwc);
 	}
