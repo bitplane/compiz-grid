@@ -100,7 +100,8 @@ gridCommon(CompDisplay     *compdisplay,
 
 		// slice and dice to get desired rect
 		GridProps props = gridProps[where];
-		XRectangle workarea = cw->screen->workArea;
+		XRectangle workarea;
+		getWorkareaForOutput(cw->screen, outputDeviceForWindow(cw), &workarea);
 		XRectangle desired;
 		desired.y =  workarea.y + props.gravityDown * (workarea.height / props.numCellsY);
 		desired.height = workarea.height / props.numCellsY;
