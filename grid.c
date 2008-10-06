@@ -111,7 +111,6 @@ gridCommon(CompDisplay     *compdisplay,
 		// TODO:
 		// * handle size increment hints correctly
 		// * read and use minimum size hints
-		// * second '8' '5' and '2' keypresses fit window into the middle third.
 
 		int winc = 1;
 		int hinc = 1;
@@ -134,7 +133,7 @@ gridCommon(CompDisplay     *compdisplay,
 			int width66 = roundDown( (2*workarea.width) / 3, winc );
 			int width33 = roundDown( workarea.width - width66, winc );
 
-			if( props.numCellsX == 2 )
+			if( props.numCellsX == 2 ) // keys (1,4,7, 3,6,9)
 			{
 				if( (current.width ==  desired.width)
 					&& (current.x == desired.x) )
@@ -149,7 +148,7 @@ gridCommon(CompDisplay     *compdisplay,
 					desired.x = workarea.x + props.gravityRight * width66;
 				}
 			}
-			else // props.numCellsX == 1
+			else // keys (2,5,8)
 			{
 				if( (current.width ==  desired.width)
 					&& (current.x == desired.x) )
