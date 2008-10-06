@@ -128,13 +128,14 @@ gridCommon(CompDisplay     *compdisplay,
 		//printf("work(%i %i %i %i)\n", workarea.x, workarea.y, workarea.width, workarea.height);
 		//printf("comp(%i %i %i %i)\n", desired.x, desired.y, desired.width, desired.height);
 
-		if( props.numCellsX == 2 )
+		if( (desired.y == current.y)
+			&& (desired.height == current.height) )
 		{
-			if( (desired.y == current.y)
-				&& (desired.height == current.height) )
+			int width66 = roundDown( (2*workarea.width) / 3, winc );
+			int width33 = roundDown( workarea.width - width66, winc );
+
+			if( props.numCellsX == 2 )
 			{
-				int width66 = roundDown( (2*workarea.width) / 3, winc );
-				int width33 = roundDown( workarea.width - width66, winc );
 				if( (current.width ==  desired.width)
 					&& (current.x == desired.x) )
 				{
@@ -146,6 +147,15 @@ gridCommon(CompDisplay     *compdisplay,
 				{
 					desired.width = width33;
 					desired.x = workarea.x + props.gravityRight * width66;
+				}
+			}
+			else // props.numCellsX == 1
+			{
+				if( (current.width ==  desired.width)
+					&& (current.x == desired.x) )
+				{
+					desired.width = width33;
+					desired.x = workarea.x + width33;
 				}
 			}
 		}
