@@ -1,7 +1,21 @@
 /*
- * Stephen Kennedy <suasol@gmail.com>
+ * Compiz Fusion Grid plugin
+ *
+ * Copyright (c) 2008 Stephen Kennedy <suasol@gmail.com>
  * 
- * compiz-fusion plugin to act like winsplit revolution (http://www.winsplit-revolution.com/)
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * Description:
+ *
+ * Plugin to act like winsplit revolution (http://www.winsplit-revolution.com/)
  * use <Control><Alt>NUMPAD_KEY to move and tile your windows.
  * 
  * Press the tiling keys several times to cycle through some tiling options.
@@ -11,18 +25,30 @@
 #include <string.h>
 #include "grid_options.h"
 
+#define GRID_DEBUG 0
+
+#if GRID_DEBUG
+#   include <stdio.h>
+	static FILE* gridOut;
+#   define DEBUG_RECT(VAR) fprintf(gridOut, #VAR " %i %i %i %i\n", VAR.x, VAR.y, VAR.width, VAR.height)
+#   define DEBUG_PRINT(ARGS) fprintf ARGS
+#else
+#   define DEBUG_RECT(VAR)
+#   define DEBUG_PRINT(ARGS)
+#endif
+
 typedef enum
 {
-    GridUnknown = 0,
-    GridBottomLeft = 1,
-    GridBottom = 2,
-    GridBottomRight = 3,
-    GridLeft = 4,
-    GridCenter = 5,
-    GridRight = 6,
-    GridTopLeft = 7,
-    GridTop = 8,
-    GridTopRight = 9,
+	GridUnknown = 0,
+	GridBottomLeft = 1,
+	GridBottom = 2,
+	GridBottomRight = 3,
+	GridLeft = 4,
+	GridCenter = 5,
+	GridRight = 6,
+	GridTopLeft = 7,
+	GridTop = 8,
+	GridTopRight = 9,
 } GridType;
 
 typedef struct _GridProps
@@ -51,119 +77,154 @@ static const GridProps gridProps[] =
 };
 
 static void
-getWindowDecorationSize( CompWindow* cw, CompWindowExtents* border )
+slotToRect( CompWindow *w, XRectangle *slot, XRectangle *rect )
 {
-	memset(border, 0, sizeof(CompWindowExtents));
-	CompWindow* w;
-	for( w = cw->screen->windows; w; w = w->next )
-	{
-		if (w->input.left > border->left)
-			border->left = w->input.left;
-		if (w->input.right > border->right)
-			border->right = w->input.right;
-		if (w->input.top > border->top)
-			border->top = w->input.top;
-		if (w->input.bottom > border->bottom)
-			border->bottom = w->input.bottom;
-	}
+	rect->x = slot->x + w->input.left;
+	rect->y = slot->y + w->input.top;
+	rect->width = slot->width - (w->input.left + w->input.right);
+	rect->height = slot->height - (w->input.top + w->input.bottom);
 }
 
-static inline int roundDown( int x, int r )
+static void
+constrainSize(
+	CompWindow *w,
+	XRectangle *slot,
+	XRectangle *rect )
 {
-	return x - (x%r);
+	XRectangle workarea;
+	getWorkareaForOutput(w->screen, outputDeviceForWindow(w), &workarea);
+
+	XRectangle r;
+	slotToRect(w, slot, &r);
+	int cw,ch;
+	if( constrainNewWindowSize( w, r.width, r.height, &cw, &ch) )
+	{
+		/* constrained size may put window offscreen, adjust for that case */
+		int dx = r.x + cw - workarea.width - workarea.x + w->input.right;
+		if( dx > 0 )
+		{
+			r.x -= dx;
+		}
+		int dy = r.y + ch - workarea.height - workarea.y + w->input.bottom;
+		if( dy > 0 )
+		{
+			r.y -= dy;
+		}
+		r.width = cw;
+		r.height = ch;
+	} 
+
+	*rect = r;
 }
 
 static Bool
-gridCommon(CompDisplay     *compdisplay,
-		 CompAction      *action,
-		 CompActionState state,
-		 CompOption      *option,
-		 int             nOption,
-		 GridType		 where)
+gridCommon(
+	CompDisplay     *d,
+	CompAction      *action,
+	CompActionState state,
+	CompOption      *option,
+	int             nOption,
+	GridType	    where)
 {
-	Window     xid;
+	Window xid;
 	CompWindow *cw;
 
 	xid = getIntOptionNamed (option, nOption, "window", 0);
-	cw   = findWindowAtDisplay (compdisplay, xid);
+	cw  = findWindowAtDisplay (d, xid);
 	if (cw)
 	{
-		CompWindowExtents border;
-		getWindowDecorationSize(cw, &border);
+		DEBUG_PRINT((gridOut, "\nPressed KP_%i\n", where));
 
-		// get current rect including decorations
-		XRectangle current;
-		current.x = cw->attrib.x - border.left;
-		current.y = cw->attrib.y - border.top;
-		current.width = cw->attrib.width + border.left + border.right;
-		current.height = cw->attrib.height + border.top + border.bottom;
-
-		// slice and dice to get desired rect
-		GridProps props = gridProps[where];
+		/* get current available area */
 		XRectangle workarea;
 		getWorkareaForOutput(cw->screen, outputDeviceForWindow(cw), &workarea);
-		XRectangle desired;
-		desired.y =  workarea.y + props.gravityDown * (workarea.height / props.numCellsY);
-		desired.height = workarea.height / props.numCellsY;
-		desired.x =  workarea.x + props.gravityRight * (workarea.width / props.numCellsX);
-		desired.width = workarea.width / props.numCellsX;
+		DEBUG_RECT(workarea);
 
-		// TODO:
-		// * handle size increment hints correctly
-		// * read and use minimum size hints
+		/* Convention:
+		 * xxxSlot include decorations (it's the screen area occupied)
+		 * xxxRect are undecorated (it's the constrained position of the contents)
+		 */
 
-		int winc = 1;
-		int hinc = 1;
-		if( cw->sizeHints.flags & PResizeInc )
+		/* slice and dice to get desired slot - including decorations */
+		GridProps props = gridProps[where];
+		XRectangle desiredSlot;
+		desiredSlot.y =  workarea.y + props.gravityDown * (workarea.height / props.numCellsY);
+		desiredSlot.height = workarea.height / props.numCellsY;
+		desiredSlot.x =  workarea.x + props.gravityRight * (workarea.width / props.numCellsX);
+		desiredSlot.width = workarea.width / props.numCellsX;
+		DEBUG_RECT(desiredSlot);
+
+		/* Adjust for constraints and decorations */
+		XRectangle desiredRect;
+		constrainSize(cw, &desiredSlot, &desiredRect);
+		DEBUG_RECT(desiredRect);
+
+		/* Get current rect not including decorations */
+		XRectangle currentRect;
+		currentRect.x = cw->serverX;
+		currentRect.y = cw->serverY;
+		currentRect.width = cw->serverWidth;
+		currentRect.height = cw->serverHeight;
+		DEBUG_RECT(currentRect);
+
+		if(	(desiredRect.y == currentRect.y) && (desiredRect.height == currentRect.height) )
 		{
-			winc = cw->sizeHints.width_inc;
-			hinc = cw->sizeHints.height_inc;
-		}
-		desired.height = roundDown(desired.height, hinc);
-		desired.width  = roundDown(desired.width, winc);
+			DEBUG_PRINT((gridOut, "Multi!\n"));
+			int slotWidth33  = workarea.width / 3;
+			int slotWidth66  = workarea.width - slotWidth33;
 
-		//printf("\nattr(%i %i %i %i)\n", cw->attrib.x, cw->attrib.y, cw->attrib.width, cw->attrib.height);
-		//printf("border(%i %i %i %i)\n", border.left, border.top, border.right, border.bottom);
-		//printf("work(%i %i %i %i)\n", workarea.x, workarea.y, workarea.width, workarea.height);
-		//printf("comp(%i %i %i %i)\n", desired.x, desired.y, desired.width, desired.height);
-
-		if( (desired.y == current.y)
-			&& (desired.height == current.height) )
-		{
-			int width66 = roundDown( (2*workarea.width) / 3, winc );
-			int width33 = roundDown( workarea.width - width66, winc );
-
-			if( props.numCellsX == 2 ) // keys (1,4,7, 3,6,9)
+			if( props.numCellsX == 2 ) /* keys (1,4,7, 3,6,9) */
 			{
-				if( (current.width ==  desired.width)
-					&& (current.x == desired.x) )
+				if( (currentRect.width == desiredRect.width) && (currentRect.x == desiredRect.x) )
 				{
-					desired.width = width66;
-					desired.x = workarea.x + props.gravityRight * width33;
+					desiredSlot.width = slotWidth66;
+					desiredSlot.x = workarea.x + props.gravityRight * slotWidth33;
 				}
-				else if( (current.width == width66)
-					&& (current.x == workarea.x + props.gravityRight * width33) )
+				else
 				{
-					desired.width = width33;
-					desired.x = workarea.x + props.gravityRight * width66;
+					/* tricky, have to allow for window constraints when computing
+					 * what the 33% and 66% offsets would be */
+					XRectangle rect33, rect66;
+
+					XRectangle slot33 = desiredSlot;
+					slot33.x = workarea.x + props.gravityRight * slotWidth66;
+					slot33.width = slotWidth33;
+					constrainSize(cw, &slot33, &rect33);
+					DEBUG_RECT(slot33);
+					DEBUG_RECT(rect33);
+
+					XRectangle slot66 = desiredSlot;
+					slot66.x = workarea.x + props.gravityRight * slotWidth33;
+					slot66.width = slotWidth66;
+					constrainSize(cw, &slot66, &rect66);
+					DEBUG_RECT(slot66);
+					DEBUG_RECT(rect66);
+
+					if( (currentRect.width == rect66.width) && (currentRect.x == rect66.x) )
+					{
+						desiredSlot.width = slotWidth33;
+						desiredSlot.x = workarea.x + props.gravityRight * slotWidth66;
+					}
 				}
 			}
-			else // keys (2,5,8)
+			else /* keys (2,5,8) */
 			{
-				if( (current.width ==  desired.width)
-					&& (current.x == desired.x) )
+				if( (currentRect.width == desiredRect.width)
+					&& (currentRect.x == desiredRect.x) )
 				{
-					desired.width = width33;
-					desired.x = workarea.x + width33;
+					desiredSlot.width = slotWidth33;
+					desiredSlot.x = workarea.x + slotWidth33;
 				}
 			}
+			constrainSize(cw, &desiredSlot, &desiredRect);
+			DEBUG_RECT(desiredRect);
 		}
 
 		XWindowChanges xwc;
-		xwc.x = desired.x + border.left;
-		xwc.y = desired.y + border.top;
-		xwc.width = desired.width - (border.left+border.right);
-		xwc.height = desired.height - (border.top+border.bottom);
+		xwc.x = desiredRect.x;
+		xwc.y = desiredRect.y;
+		xwc.width = desiredRect.width;
+		xwc.height = desiredRect.height;
 		unsigned mask = CWWidth | CWHeight | CWX | CWY;
 		if (cw->mapNum && (mask & (CWWidth | CWHeight)))
 		{
@@ -171,9 +232,9 @@ gridCommon(CompDisplay     *compdisplay,
 		}
 		if( cw->state & MAXIMIZE_STATE )
 		{
-			maximizeWindow(cw,0); // max state interferes with us, clear it
+			maximizeWindow(cw,0); /* max state interferes with us, clear it */
 		}
-		//TODO: animate move+resize
+		/* TODO: animate move+resize */
 		configureXWindow (cw, mask, &xwc);
 	}
 
@@ -182,81 +243,100 @@ gridCommon(CompDisplay     *compdisplay,
 
 #define HANDLER(WHERE) \
 	static Bool grid##WHERE(CompDisplay* d, CompAction* action, CompActionState state, CompOption* option, int nOption) \
-	{ \
-		return gridCommon(d, action, state, option, nOption, Grid##WHERE); \
-	}
-HANDLER(BottomLeft)
-HANDLER(Bottom)
-HANDLER(BottomRight)
-HANDLER(Left)
-HANDLER(Center)
-HANDLER(Right)
-HANDLER(TopLeft)
-HANDLER(Top)
-HANDLER(TopRight)
+{ \
+	return gridCommon(d, action, state, option, nOption, Grid##WHERE); \
+}
+	HANDLER(BottomLeft)
+	HANDLER(Bottom)
+	HANDLER(BottomRight)
+	HANDLER(Left)
+	HANDLER(Center)
+	HANDLER(Right)
+	HANDLER(TopLeft)
+	HANDLER(Top)
+	HANDLER(TopRight)
 
-/* Configuration, initialization, boring stuff. --------------------- */
+/* Configuration, initialization, boring stuff. */
+
 static Bool
-gridInitDisplay (CompPlugin  *p,
-			  CompDisplay *d)
+gridInitDisplay (CompPlugin* p, CompDisplay* d)
 {
-    if (!checkPluginABI ("core", CORE_ABIVERSION))
-	return FALSE;
+	if (!checkPluginABI ("core", CORE_ABIVERSION))
+	{
+		return FALSE;
+	}
 
-    gridSetPutCenterKeyInitiate (d, gridCenter);
-    gridSetPutLeftKeyInitiate (d, gridLeft);
-    gridSetPutRightKeyInitiate (d, gridRight);
-    gridSetPutTopKeyInitiate (d, gridTop);
-    gridSetPutBottomKeyInitiate (d, gridBottom);
-    gridSetPutTopleftKeyInitiate (d, gridTopLeft);
-    gridSetPutToprightKeyInitiate (d, gridTopRight);
-    gridSetPutBottomleftKeyInitiate (d, gridBottomLeft);
-    gridSetPutBottomrightKeyInitiate (d, gridBottomRight);
+	gridSetPutCenterKeyInitiate (d, gridCenter);
+	gridSetPutLeftKeyInitiate (d, gridLeft);
+	gridSetPutRightKeyInitiate (d, gridRight);
+	gridSetPutTopKeyInitiate (d, gridTop);
+	gridSetPutBottomKeyInitiate (d, gridBottom);
+	gridSetPutTopleftKeyInitiate (d, gridTopLeft);
+	gridSetPutToprightKeyInitiate (d, gridTopRight);
+	gridSetPutBottomleftKeyInitiate (d, gridBottomLeft);
+	gridSetPutBottomrightKeyInitiate (d, gridBottomRight);
 
-    return TRUE;
+	return TRUE;
 }
 
 static CompBool
-gridInitObject (CompPlugin *p,
-			 CompObject *o)
+gridInitObject (CompPlugin* p, CompObject* o)
 {
-    static InitPluginObjectProc dispTab[] = {
-	(InitPluginObjectProc) 0, /* InitCore */
-	(InitPluginObjectProc) gridInitDisplay,
-	0, 
-	0 
-    };
+	static InitPluginObjectProc dispTab[] = {
+		(InitPluginObjectProc) 0, /* InitCore */
+		(InitPluginObjectProc) gridInitDisplay,
+		0, 
+		0 
+	};
 
-    RETURN_DISPATCH (o, dispTab, ARRAY_SIZE (dispTab), TRUE, (p, o));
+	RETURN_DISPATCH (o, dispTab, ARRAY_SIZE (dispTab), TRUE, (p, o));
 }
 
 static void
-gridFiniObject (CompPlugin *p,
-			 CompObject *o)
+gridFiniObject (CompPlugin* p, CompObject* o)
 {
-    static FiniPluginObjectProc dispTab[] = {
-	(FiniPluginObjectProc) 0, /* FiniCore */
-	0, 
-	0, 
-	0 
-    };
+	static FiniPluginObjectProc dispTab[] = {
+		(FiniPluginObjectProc) 0, /* FiniCore */
+		0, 
+		0, 
+		0 
+	};
 
-    DISPATCH (o, dispTab, ARRAY_SIZE (dispTab), (p, o));
+	DISPATCH (o, dispTab, ARRAY_SIZE (dispTab), (p, o));
+}
+
+static Bool
+gridInitPlugin (CompPlugin* p)
+{
+#if GRID_DEBUG
+	gridOut = fopen("/tmp/grid.log", "w");
+	setlinebuf(gridOut);
+#endif
+	return TRUE;
+}
+
+static void
+gridQuitPlugin (CompPlugin* p)
+{
+#if GRID_DEBUG
+	fclose(gridOut);
+	gridOut = NULL;
+#endif
 }
 
 CompPluginVTable gridVTable = {
-    "grid",
-    0,
-    0,
-    0,
-    gridInitObject,
-    gridFiniObject,
-    0,
-    0
+	"grid",
+	0,
+	gridInitPlugin,
+	gridQuitPlugin,
+	gridInitObject,
+	gridFiniObject,
+	0,
+	0
 };
 
 CompPluginVTable*
-getCompPluginInfo (void)
+getCompPluginInfo ()
 {
-    return &gridVTable;
+	return &gridVTable;
 }
