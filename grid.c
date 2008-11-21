@@ -77,7 +77,10 @@ static const GridProps gridProps[] =
 };
 
 static void
-slotToRect( CompWindow *w, XRectangle *slot, XRectangle *rect )
+slotToRect(
+	CompWindow *w,
+	XRectangle *slot,
+	XRectangle *rect )
 {
 	rect->x = slot->x + w->input.left;
 	rect->y = slot->y + w->input.top;
@@ -97,16 +100,16 @@ constrainSize(
 	XRectangle r;
 	slotToRect(w, slot, &r);
 	int cw,ch;
-	if( constrainNewWindowSize( w, r.width, r.height, &cw, &ch) )
+	if ( constrainNewWindowSize( w, r.width, r.height, &cw, &ch) )
 	{
 		/* constrained size may put window offscreen, adjust for that case */
 		int dx = r.x + cw - workarea.width - workarea.x + w->input.right;
-		if( dx > 0 )
+		if ( dx > 0 )
 		{
 			r.x -= dx;
 		}
 		int dy = r.y + ch - workarea.height - workarea.y + w->input.bottom;
-		if( dy > 0 )
+		if ( dy > 0 )
 		{
 			r.y -= dy;
 		}
@@ -167,15 +170,15 @@ gridCommon(
 		currentRect.height = cw->serverHeight;
 		DEBUG_RECT(currentRect);
 
-		if(	(desiredRect.y == currentRect.y) && (desiredRect.height == currentRect.height) )
+		if ( (desiredRect.y == currentRect.y) && (desiredRect.height == currentRect.height) )
 		{
 			DEBUG_PRINT((gridOut, "Multi!\n"));
 			int slotWidth33  = workarea.width / 3;
 			int slotWidth66  = workarea.width - slotWidth33;
 
-			if( props.numCellsX == 2 ) /* keys (1,4,7, 3,6,9) */
+			if ( props.numCellsX == 2 ) /* keys (1,4,7, 3,6,9) */
 			{
-				if( (currentRect.width == desiredRect.width) && (currentRect.x == desiredRect.x) )
+				if ( (currentRect.width == desiredRect.width) && (currentRect.x == desiredRect.x) )
 				{
 					desiredSlot.width = slotWidth66;
 					desiredSlot.x = workarea.x + props.gravityRight * slotWidth33;
@@ -200,7 +203,7 @@ gridCommon(
 					DEBUG_RECT(slot66);
 					DEBUG_RECT(rect66);
 
-					if( (currentRect.width == rect66.width) && (currentRect.x == rect66.x) )
+					if ( (currentRect.width == rect66.width) && (currentRect.x == rect66.x) )
 					{
 						desiredSlot.width = slotWidth33;
 						desiredSlot.x = workarea.x + props.gravityRight * slotWidth66;
@@ -209,7 +212,7 @@ gridCommon(
 			}
 			else /* keys (2,5,8) */
 			{
-				if( (currentRect.width == desiredRect.width)
+				if ( (currentRect.width == desiredRect.width)
 					&& (currentRect.x == desiredRect.x) )
 				{
 					desiredSlot.width = slotWidth33;
@@ -230,7 +233,7 @@ gridCommon(
 		{
 			sendSyncRequest (cw);
 		}
-		if( cw->state & MAXIMIZE_STATE )
+		if ( cw->state & MAXIMIZE_STATE )
 		{
 			maximizeWindow(cw,0); /* max state interferes with us, clear it */
 		}
@@ -242,10 +245,16 @@ gridCommon(
 }
 
 #define HANDLER(WHERE) \
-	static Bool grid##WHERE(CompDisplay* d, CompAction* action, CompActionState state, CompOption* option, int nOption) \
-{ \
-	return gridCommon(d, action, state, option, nOption, Grid##WHERE); \
-}
+	static Bool \
+	grid##WHERE( \
+		CompDisplay     *d, \
+		CompAction      *action, \
+		CompActionState state, \
+		CompOption      *option, \
+		int             nOption) \
+	{ \
+		return gridCommon(d, action, state, option, nOption, Grid##WHERE); \
+	}
 	HANDLER(BottomLeft)
 	HANDLER(Bottom)
 	HANDLER(BottomRight)
@@ -255,11 +264,14 @@ gridCommon(
 	HANDLER(TopLeft)
 	HANDLER(Top)
 	HANDLER(TopRight)
+#undef HANDLER
 
 /* Configuration, initialization, boring stuff. */
 
 static Bool
-gridInitDisplay (CompPlugin* p, CompDisplay* d)
+gridInitDisplay (
+	CompPlugin  *p,
+	CompDisplay *d)
 {
 	if (!checkPluginABI ("core", CORE_ABIVERSION))
 	{
@@ -280,7 +292,9 @@ gridInitDisplay (CompPlugin* p, CompDisplay* d)
 }
 
 static CompBool
-gridInitObject (CompPlugin* p, CompObject* o)
+gridInitObject (
+	CompPlugin *p,
+	CompObject *o)
 {
 	static InitPluginObjectProc dispTab[] = {
 		(InitPluginObjectProc) 0, /* InitCore */
@@ -293,7 +307,9 @@ gridInitObject (CompPlugin* p, CompObject* o)
 }
 
 static void
-gridFiniObject (CompPlugin* p, CompObject* o)
+gridFiniObject(
+	CompPlugin *p,
+	CompObject *o)
 {
 	static FiniPluginObjectProc dispTab[] = {
 		(FiniPluginObjectProc) 0, /* FiniCore */
@@ -324,7 +340,8 @@ gridQuitPlugin (CompPlugin* p)
 #endif
 }
 
-CompPluginVTable gridVTable = {
+CompPluginVTable gridVTable =
+{
 	"grid",
 	0,
 	gridInitPlugin,
