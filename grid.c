@@ -95,20 +95,20 @@ constrainSize(
 	XRectangle *rect )
 {
 	XRectangle workarea;
-	getWorkareaForOutput(w->screen, outputDeviceForWindow(w), &workarea);
-
 	XRectangle r;
-	slotToRect(w, slot, &r);
 	int cw,ch;
+
+	getWorkareaForOutput(w->screen, outputDeviceForWindow(w), &workarea);
+	slotToRect(w, slot, &r);
 	if ( constrainNewWindowSize( w, r.width, r.height, &cw, &ch) )
 	{
 		/* constrained size may put window offscreen, adjust for that case */
 		int dx = r.x + cw - workarea.width - workarea.x + w->input.right;
+		int dy = r.y + ch - workarea.height - workarea.y + w->input.bottom;
 		if ( dx > 0 )
 		{
 			r.x -= dx;
 		}
-		int dy = r.y + ch - workarea.height - workarea.y + w->input.bottom;
 		if ( dy > 0 )
 		{
 			r.y -= dy;
@@ -136,10 +136,15 @@ gridCommon(
 	cw  = findWindowAtDisplay (d, xid);
 	if (cw)
 	{
+		XRectangle workarea;
+		XRectangle desiredSlot;
+		XRectangle desiredRect;
+		XRectangle currentRect;
+		GridProps props = gridProps[where];
+
 		DEBUG_PRINT((gridOut, "\nPressed KP_%i\n", where));
 
 		/* get current available area */
-		XRectangle workarea;
 		getWorkareaForOutput(cw->screen, outputDeviceForWindow(cw), &workarea);
 		DEBUG_RECT(workarea);
 
@@ -149,8 +154,6 @@ gridCommon(
 		 */
 
 		/* slice and dice to get desired slot - including decorations */
-		GridProps props = gridProps[where];
-		XRectangle desiredSlot;
 		desiredSlot.y =  workarea.y + props.gravityDown * (workarea.height / props.numCellsY);
 		desiredSlot.height = workarea.height / props.numCellsY;
 		desiredSlot.x =  workarea.x + props.gravityRight * (workarea.width / props.numCellsX);
@@ -158,12 +161,10 @@ gridCommon(
 		DEBUG_RECT(desiredSlot);
 
 		/* Adjust for constraints and decorations */
-		XRectangle desiredRect;
 		constrainSize(cw, &desiredSlot, &desiredRect);
 		DEBUG_RECT(desiredRect);
 
 		/* Get current rect not including decorations */
-		XRectangle currentRect;
 		currentRect.x = cw->serverX;
 		currentRect.y = cw->serverY;
 		currentRect.width = cw->serverWidth;
@@ -187,16 +188,16 @@ gridCommon(
 				{
 					/* tricky, have to allow for window constraints when computing
 					 * what the 33% and 66% offsets would be */
-					XRectangle rect33, rect66;
+					XRectangle rect33, rect66, slot33, slot66;
 
-					XRectangle slot33 = desiredSlot;
+					slot33 = desiredSlot;
 					slot33.x = workarea.x + props.gravityRight * slotWidth66;
 					slot33.width = slotWidth33;
 					constrainSize(cw, &slot33, &rect33);
 					DEBUG_RECT(slot33);
 					DEBUG_RECT(rect33);
 
-					XRectangle slot66 = desiredSlot;
+					slot66 = desiredSlot;
 					slot66.x = workarea.x + props.gravityRight * slotWidth33;
 					slot66.width = slotWidth66;
 					constrainSize(cw, &slot66, &rect66);
@@ -223,22 +224,24 @@ gridCommon(
 			DEBUG_RECT(desiredRect);
 		}
 
-		XWindowChanges xwc;
-		xwc.x = desiredRect.x;
-		xwc.y = desiredRect.y;
-		xwc.width = desiredRect.width;
-		xwc.height = desiredRect.height;
-		unsigned mask = CWWidth | CWHeight | CWX | CWY;
-		if (cw->mapNum && (mask & (CWWidth | CWHeight)))
 		{
-			sendSyncRequest (cw);
+			XWindowChanges xwc;
+			xwc.x = desiredRect.x;
+			xwc.y = desiredRect.y;
+			xwc.width = desiredRect.width;
+			xwc.height = desiredRect.height;
+			unsigned mask = CWWidth | CWHeight | CWX | CWY;
+			if (cw->mapNum && (mask & (CWWidth | CWHeight)))
+			{
+				sendSyncRequest (cw);
+			}
+			if ( cw->state & MAXIMIZE_STATE )
+			{
+				maximizeWindow(cw,0); /* max state interferes with us, clear it */
+			}
+			/* TODO: animate move+resize */
+			configureXWindow (cw, mask, &xwc);
 		}
-		if ( cw->state & MAXIMIZE_STATE )
-		{
-			maximizeWindow(cw,0); /* max state interferes with us, clear it */
-		}
-		/* TODO: animate move+resize */
-		configureXWindow (cw, mask, &xwc);
 	}
 
 	return TRUE;
