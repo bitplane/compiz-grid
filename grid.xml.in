@@ -4,7 +4,7 @@
 	<_short>Grid</_short>
 	<_long>Warp and resize windows to fit an imaginary grid.</_long>
 	<category>Window Management</category>
-	<display>
+	<options>
 	    <group>
 		<_short>Bindings</_short>
 		<option name="put_center_key" type="key">
@@ -53,6 +53,6 @@
 		    <default>&lt;Control&gt;&lt;Alt&gt;KP_3</default>
 		</option>
 	    </group>
-	</display>
+	</options>
     </plugin>
 </compiz>
