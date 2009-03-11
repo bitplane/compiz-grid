@@ -63,20 +63,13 @@ class GridScreen :
 
     private:
 
-	void
-	slotToRect(CompWindow *w,
-		   XRectangle *slot,
-		   XRectangle *rect);
-	void
+	CompRect
+	slotToRect (CompWindow      *w,
+		    const CompRect& slot);
+	CompRect
 	constrainSize (CompWindow *w,
-		       XRectangle *slot,
-		       XRectangle *rect);
-
-
+		       const CompRect& slot);
 };
-
-#define GRID_SCREEN(s)							       \
-    GridScreen *gs = GridScreen::get (s);
 
 class GridPluginVTable :
     public CompPlugin::VTableForScreen <GridScreen>

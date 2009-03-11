@@ -40,45 +40,42 @@ static const GridProps gridProps[] =
     {1,0, 2,2},
 };
 
-void
-GridScreen::slotToRect (CompWindow *w,
-	    XRectangle *slot,
-	    XRectangle *rect)
+CompRect
+GridScreen::slotToRect (CompWindow      *w,
+			const CompRect& slot)
 {
-    rect->x = slot->x + w->input ().left;
-    rect->y = slot->y + w->input ().top;
-    rect->width = slot->width - (w->input ().left + w->input ().right);
-    rect->height = slot->height - (w->input ().top + w->input ().bottom);
+    return CompRect (slot.x () + w->input ().left,
+		     slot.y () + w->input ().top,
+		     slot.width () - (w->input ().left + w->input ().right),
+		     slot.height () - (w->input ().top + w->input ().bottom));
 }
 
-void
-GridScreen::constrainSize (CompWindow *w,
-			   XRectangle *slot,
-			   XRectangle *rect)
+CompRect
+GridScreen::constrainSize (CompWindow      *w,
+			   const CompRect& slot)
 {
-    XRectangle workarea;
-    XRectangle r;
-    int        cw, ch;
+    CompRect workarea, result;
+    int      cw, ch;
 
-    screen->getWorkareaForOutput (w->outputDevice (), &workarea);
-    slotToRect (w, slot, &r);
+    workarea = screen->getWorkareaForOutput (w->outputDevice ());
+    result   = slotToRect (w, slot);
 
-    if (w->constrainNewWindowSize (r.width, r.height, &cw, &ch))
+    if (w->constrainNewWindowSize (result.width (), result.height (), &cw, &ch))
     {
 	/* constrained size may put window offscreen, adjust for that case */
-	int dx = r.x + cw - workarea.width - workarea.x + w->input ().right;
-	int dy = r.y + ch - workarea.height - workarea.y + w->input ().bottom;
+	int dx = result.x () + cw - workarea.right () + w->input ().right;
+	int dy = result.y () + ch - workarea.bottom () + w->input ().bottom;
 
-	if ( dx > 0 )
-	    r.x -= dx;
-	if ( dy > 0 )
-	    r.y -= dy;
+	if (dx > 0)
+	    result.setX (result.x () - dx);
+	if (dy > 0)
+	    result.setY (result.y () - dy);
 
-	r.width = cw;
-	r.height = ch;
+	result.setWidth (cw);
+	result.setHeight (ch);
     }
 
-    *rect = r;
+    return result;
 }
 
 bool
@@ -94,15 +91,13 @@ GridScreen::initiateCommon (CompAction         *action,
     cw  = screen->findWindow (xid);
     if (cw)
     {
-	XRectangle     workarea;
-	XRectangle     desiredSlot;
-	XRectangle     desiredRect;
-	XRectangle     currentRect;
+	CompRect workarea, currentRect;
+	CompRect desiredSlot, desiredRect;
 	GridProps      props = gridProps[where];
 	XWindowChanges xwc;
 
 	/* get current available area */
-	screen->getWorkareaForOutput (cw->outputDevice (), &workarea);
+	workarea = screen->getWorkareaForOutput (cw->outputDevice ());
 
 	/* Convention:
 	 * xxxSlot include decorations (it's the screen area occupied)
@@ -111,79 +106,79 @@ GridScreen::initiateCommon (CompAction         *action,
 	 */
 
 	/* slice and dice to get desired slot - including decorations */
-	desiredSlot.y =  workarea.y + props.gravityDown *
-	                 (workarea.height / props.numCellsY);
-	desiredSlot.height = workarea.height / props.numCellsY;
-	desiredSlot.x =  workarea.x + props.gravityRight *
-	                 (workarea.width / props.numCellsX);
-	desiredSlot.width = workarea.width / props.numCellsX;
+	desiredSlot.setY (workarea.y () + props.gravityDown *
+			  (workarea.height () / props.numCellsY));
+	desiredSlot.setHeight (workarea.height () / props.numCellsY);
+	desiredSlot.setX (workarea.x () + props.gravityRight *
+			  (workarea.width () / props.numCellsX));
+	desiredSlot.setWidth (workarea.width () / props.numCellsX);
 
 	/* Adjust for constraints and decorations */
-	constrainSize (cw, &desiredSlot, &desiredRect);
+	desiredRect = constrainSize (cw, desiredSlot);
 
 	/* Get current rect not including decorations */
-	currentRect.x = cw->serverX ();
-	currentRect.y = cw->serverY ();
-	currentRect.width  = cw->serverWidth ();
-	currentRect.height = cw->serverHeight ();
+	currentRect.setGeometry (cw->serverX (), cw->serverY (),
+				 cw->serverWidth (),
+				 cw->serverHeight ());
 
-	if (desiredRect.y      == currentRect.y &&
-	    desiredRect.height == currentRect.height)
+	if (desiredRect == currentRect)
 	{
-	    int slotWidth33  = workarea.width / 3;
-	    int slotWidth66  = workarea.width - slotWidth33;
+	    int slotWidth33  = workarea.width () / 3;
+	    int slotWidth66  = workarea.width () - slotWidth33;
 
 	    if (props.numCellsX == 2) /* keys (1, 4, 7, 3, 6, 9) */
 	    {
-		if (currentRect.width == desiredRect.width &&
-		    currentRect.x == desiredRect.x)
+		if (currentRect.width () == desiredRect.width () &&
+		    currentRect.x () == desiredRect.x ())
 		{
-		    desiredSlot.width = slotWidth66;
-		    desiredSlot.x = workarea.x +
-			            props.gravityRight * slotWidth33;
+		    desiredSlot.setWidth (slotWidth66);
+		    desiredSlot.setX (workarea.x () +
+				      props.gravityRight * slotWidth33);
 		}
 		else
 		{
 		    /* tricky, have to allow for window constraints when
 		     * computing what the 33% and 66% offsets would be
 		     */
-		    XRectangle rect33, rect66, slot33, slot66;
+		    CompRect rect33, rect66, slot33, slot66;
 
 		    slot33 = desiredSlot;
-		    slot33.x = workarea.x + props.gravityRight * slotWidth66;
-		    slot33.width = slotWidth33;
-		    constrainSize (cw, &slot33, &rect33);
+		    slot33.setX (workarea.x () +
+				 props.gravityRight * slotWidth66);
+		    slot33.setWidth (slotWidth33);
+		    rect33 = constrainSize (cw, slot33);
 
 		    slot66 = desiredSlot;
-		    slot66.x = workarea.x + props.gravityRight * slotWidth33;
-		    slot66.width = slotWidth66;
-		    constrainSize (cw, &slot66, &rect66);
+		    slot66.setX (workarea.x () +
+				 props.gravityRight * slotWidth33);
+		    slot66.setWidth (slotWidth66);
+		    rect66 = constrainSize (cw, slot66);
 
-		    if (currentRect.width == rect66.width &&
-			currentRect.x == rect66.x)
+		    if (currentRect.width () == rect66.width () &&
+			currentRect.x () == rect66.x ())
 		    {
-			desiredSlot.width = slotWidth33;
-			desiredSlot.x = workarea.x +
-			                props.gravityRight * slotWidth66;
+			desiredSlot.setWidth (slotWidth33);
+			desiredSlot.setX (workarea.x () +
+					  props.gravityRight * slotWidth66);
 		    }
 		}
 	    }
 	    else /* keys (2, 5, 8) */
 	    {
-		if (currentRect.width == desiredRect.width &&
-		    currentRect.x == desiredRect.x)
+		if (currentRect.width () == desiredRect.width () &&
+		    currentRect.x () == desiredRect.x ())
 		{
-		    desiredSlot.width = slotWidth33;
-		    desiredSlot.x = workarea.x + slotWidth33;
+		    desiredSlot.setWidth (slotWidth33);
+		    desiredSlot.setX (workarea.x () + slotWidth33);
 		}
 	    }
-	    constrainSize (cw, &desiredSlot, &desiredRect);
+	    desiredRect = constrainSize (cw, desiredSlot);
 	}
 
-	xwc.x = desiredRect.x;
-	xwc.y = desiredRect.y;
-	xwc.width  = desiredRect.width;
-	xwc.height = desiredRect.height;
+	xwc.x = desiredRect.x ();
+	xwc.y = desiredRect.y ();
+	xwc.width  = desiredRect.width ();
+	xwc.height = desiredRect.height ();
 
 	if (cw->mapNum ())
 	    cw->sendSyncRequest ();
@@ -201,22 +196,23 @@ GridScreen::initiateCommon (CompAction         *action,
     return true;
 }
 
-#define GRIDSET(opt,where)			      \
-    optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon,this, _1, _2, _3, where))
+#define GRIDSET(opt,where)			                             \
+    optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon,this, \
+					   _1, _2, _3, where))
 
 GridScreen::GridScreen (CompScreen *screen) :
     PrivateHandler<GridScreen, CompScreen> (screen),
     GridOptions (gridVTable->getMetadata ())
 {
-    GRIDSET ( PutCenterKey, GridCenter);
-    GRIDSET ( PutLeftKey, GridLeft);
-    GRIDSET ( PutRightKey, GridRight);
-    GRIDSET ( PutTopKey, GridTop);
-    GRIDSET ( PutBottomKey, GridBottom);
-    GRIDSET ( PutTopleftKey, GridTopLeft);
-    GRIDSET ( PutToprightKey, GridTopRight);
-    GRIDSET ( PutBottomleftKey, GridBottomLeft);
-    GRIDSET ( PutBottomrightKey, GridBottomRight);
+    GRIDSET (PutCenterKey, GridCenter);
+    GRIDSET (PutLeftKey, GridLeft);
+    GRIDSET (PutRightKey, GridRight);
+    GRIDSET (PutTopKey, GridTop);
+    GRIDSET (PutBottomKey, GridBottom);
+    GRIDSET (PutTopleftKey, GridTopLeft);
+    GRIDSET (PutToprightKey, GridTopRight);
+    GRIDSET (PutBottomleftKey, GridBottomLeft);
+    GRIDSET (PutBottomrightKey, GridBottomRight);
 
 }
 #undef GRIDSET
