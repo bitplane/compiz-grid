@@ -22,7 +22,7 @@
  */
 
 #include <core/core.h>
-#include <core/privatehandler.h>
+#include <core/pluginclasshandler.h>
 
 #include "grid_options.h"
 
@@ -49,7 +49,7 @@ typedef struct _GridProps
 } GridProps;
 
 class GridScreen :
-    public PrivateHandler <GridScreen, CompScreen>,
+    public PluginClassHandler <GridScreen, CompScreen>,
     public GridOptions
 {
     public:

@@ -201,7 +201,7 @@ GridScreen::initiateCommon (CompAction         *action,
 					   _1, _2, _3, where))
 
 GridScreen::GridScreen (CompScreen *screen) :
-    PrivateHandler<GridScreen, CompScreen> (screen),
+    PluginClassHandler<GridScreen, CompScreen> (screen),
     GridOptions (gridVTable->getMetadata ())
 {
     GRIDSET (PutCenterKey, GridCenter);
