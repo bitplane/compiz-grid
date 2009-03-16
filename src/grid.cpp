@@ -202,7 +202,7 @@ GridScreen::initiateCommon (CompAction         *action,
 
 GridScreen::GridScreen (CompScreen *screen) :
     PluginClassHandler<GridScreen, CompScreen> (screen),
-    GridOptions (gridVTable->getMetadata ())
+    GridOptions ()
 {
     GRIDSET (PutCenterKey, GridCenter);
     GRIDSET (PutLeftKey, GridLeft);

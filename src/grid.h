@@ -77,9 +77,7 @@ class GridPluginVTable :
     public:
 
 	bool init ();
-
-	PLUGIN_OPTION_HELPER (GridScreen);
 };
 
-COMPIZ_PLUGIN_20081216 (grid, GridPluginVTable);
+COMPIZ_PLUGIN_20090315 (grid, GridPluginVTable);
 
