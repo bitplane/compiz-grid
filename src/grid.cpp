@@ -2,6 +2,7 @@
  * Compiz Fusion Grid plugin
  *
  * Copyright (c) 2008 Stephen Kennedy <suasol@gmail.com>
+ * Copyright (c) 2010 Scott Moreau <oreaus@gmail.com>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -78,6 +79,29 @@ GridScreen::constrainSize (CompWindow      *w,
     return result;
 }
 
+void
+GridWindow::sendMaximizationRequest ()
+{
+    XEvent  xev;
+    Display *dpy = screen->dpy ();
+
+    xev.xclient.type    = ClientMessage;
+    xev.xclient.display = dpy;
+    xev.xclient.format  = 32;
+
+    xev.xclient.message_type = Atoms::winState;
+    xev.xclient.window	     = window->id ();
+
+    xev.xclient.data.l[0] = 1;
+    xev.xclient.data.l[1] = Atoms::winStateMaximizedHorz;
+    xev.xclient.data.l[2] = Atoms::winStateMaximizedVert;
+    xev.xclient.data.l[3] = 0;
+    xev.xclient.data.l[4] = 0;
+
+    XSendEvent (dpy, screen->root (), false,
+		SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+}
+
 bool
 GridScreen::initiateCommon (CompAction         *action,
 			    CompAction::State  state,
@@ -89,12 +113,23 @@ GridScreen::initiateCommon (CompAction         *action,
 
     xid = CompOption::getIntOptionNamed (option, "window");
     cw  = screen->findWindow (xid);
+
+	if (where == GridUnknown)
+	return false;
+
     if (cw)
     {
 	CompRect workarea, currentRect;
 	CompRect desiredSlot, desiredRect;
 	GridProps      props = gridProps[where];
 	XWindowChanges xwc;
+
+	if (where == GridMaximize)
+	{
+		GRID_WINDOW (cw);
+		gw->sendMaximizationRequest ();
+	    return true;
+	}
 
 	/* get current available area */
 	workarea = screen->getWorkareaForOutput (cw->outputDevice ());
@@ -196,14 +231,131 @@ GridScreen::initiateCommon (CompAction         *action,
     return true;
 }
 
-#define GRIDSET(opt,where)			                             \
-    optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon,this, \
-					   _1, _2, _3, where))
+GridType
+GridScreen::dropLocation ()
+{
+	GridType ret = GridUnknown;
+
+	switch (edge)
+	{
+		case NoEdge:
+		break;
+		case Left:
+			ret = (GridType) optionGetLeftEdgeAction ();
+		break;
+		case Right:
+			ret = (GridType) optionGetRightEdgeAction ();
+		break;
+		case Top:
+			ret = (GridType) optionGetTopEdgeAction ();
+		break;
+		case Bottom:
+			ret = (GridType) optionGetBottomEdgeAction ();
+		break;
+		case TopLeft:
+			ret = (GridType) optionGetTopLeftCornerAction ();
+		break;
+		case TopRight:
+			ret = (GridType) optionGetTopRightCornerAction ();
+		break;
+		case BottomLeft:
+			ret = (GridType) optionGetBottomLeftCornerAction ();
+		break;
+		case BottomRight:
+			ret = (GridType) optionGetBottomRightCornerAction ();
+		break;
+
+		default:
+		break;
+	}
+	return ret;
+}
+
+void
+GridScreen::handleEvent (XEvent *event)
+{
+    screen->handleEvent (event);
+
+    if (event->type != MotionNotify)
+    return;
+
+	/* TODO: show some visual indication of how the window will be resized */
+
+	/* Detect corners first */
+	/* Bottom Left */
+	if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()) &&
+		pointerX < optionGetLeftEdgeThreshold())
+		edge = BottomLeft;
+	/* Bottom Right */
+	else if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()) &&
+			pointerX > (screen->width() - optionGetRightEdgeThreshold()))
+		edge = BottomRight;
+	/* Top Left */
+	else if (pointerY < optionGetTopEdgeThreshold() && pointerX < optionGetLeftEdgeThreshold())
+		edge = TopLeft;
+	/* Top Right */
+	else if (pointerY < optionGetTopEdgeThreshold() &&
+			pointerX > (screen->width() - optionGetRightEdgeThreshold()))
+		edge = TopRight;
+	/* Left */
+	else if (pointerX < optionGetLeftEdgeThreshold())
+		edge = Left;
+	/* Right */
+	else if (pointerX > (screen->width() - optionGetRightEdgeThreshold()))
+		edge = Right;
+	/* Top */
+	else if (pointerY < optionGetTopEdgeThreshold())
+		edge = Top;
+	/* Bottom */
+	else if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()))
+		edge = Bottom;
+	/* No Edge */
+	else
+		edge = NoEdge;
+}
+
+void
+GridWindow::grabNotify (int x,
+			int y,
+			unsigned int state,
+			unsigned int mask)
+{
+	screen->handleEventSetEnabled(gScreen, true);
+
+	if (mask & CompWindowGrabMoveMask)
+	grabIsMove = true;
+}
+
+void
+GridWindow::ungrabNotify ()
+{
+	GRID_SCREEN (screen);
+
+	if (grabIsMove)
+	{
+		screen->handleEventSetEnabled(gScreen, false);
+		grabIsMove = false;
+
+		CompOption::Vector o;
+		o.push_back (CompOption ("window", CompOption::TypeInt));
+		o[0].value ().set ((int) window->id ());
+
+		gs->initiateCommon (0, 0, o, gs->dropLocation());
+	}
+
+	gs->edge = NoEdge;
+}
+
 
 GridScreen::GridScreen (CompScreen *screen) :
     PluginClassHandler<GridScreen, CompScreen> (screen),
     GridOptions ()
 {
+
+#define GRIDSET(opt,where)			                             \
+    optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon,this, \
+					   _1, _2, _3, where))
+
     GRIDSET (PutCenterKey, GridCenter);
     GRIDSET (PutLeftKey, GridLeft);
     GRIDSET (PutRightKey, GridRight);
@@ -213,9 +365,23 @@ GridScreen::GridScreen (CompScreen *screen) :
     GRIDSET (PutToprightKey, GridTopRight);
     GRIDSET (PutBottomleftKey, GridBottomLeft);
     GRIDSET (PutBottomrightKey, GridBottomRight);
+    GRIDSET (PutMaximizeKey, GridMaximize);
+
+#undef GRIDSET
+
+	ScreenInterface::setHandler (screen, false);
 
 }
-#undef GRIDSET
+
+GridWindow::GridWindow (CompWindow *window) :
+    PluginClassHandler <GridWindow, CompWindow> (window),
+    window (window),
+    gScreen (GridScreen::get (screen)),
+    grabIsMove (false)
+{
+    WindowInterface::setHandler (window);
+}
+
 /* Initial plugin init function called. Checks to see if we are ABI
  * compatible with core, otherwise unload */
 
@@ -227,8 +393,3 @@ GridPluginVTable::init ()
 
     return true;
 }
-
-
-
-
-

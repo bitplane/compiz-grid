@@ -22,6 +22,7 @@
  */
 
 #include <core/core.h>
+#include <core/atoms.h>
 #include <core/pluginclasshandler.h>
 
 #include "grid_options.h"
@@ -38,6 +39,7 @@ typedef enum
     GridTopLeft = 7,
     GridTop = 8,
     GridTopRight = 9,
+    GridMaximize = 10
 } GridType;
 
 typedef struct _GridProps
@@ -48,18 +50,37 @@ typedef struct _GridProps
     int numCellsY;
 } GridProps;
 
+enum Edges
+{
+    NoEdge = 0,
+    BottomLeft,
+    Bottom,
+    BottomRight,
+    Left,
+    Right,
+    TopLeft,
+    Top,
+    TopRight	
+};
+
 class GridScreen :
+    public ScreenInterface,
     public PluginClassHandler <GridScreen, CompScreen>,
     public GridOptions
 {
     public:
 
+	void handleEvent (XEvent *event);
+
 	GridScreen (CompScreen *);
+
 	bool
-	initiateCommon (CompAction         *action,
-			CompAction::State  state,
-			CompOption::Vector &option,
-			GridType           where);
+	initiateCommon (CompAction*, CompAction::State,	CompOption::Vector&, GridType);
+
+	Edges edge;
+
+	GridType
+	dropLocation ();
 
     private:
 
@@ -71,8 +92,38 @@ class GridScreen :
 		       const CompRect& slot);
 };
 
+class GridWindow :
+    public WindowInterface,
+	public PluginClassHandler <GridWindow, CompWindow>
+{
+	public:
+
+	GridWindow (CompWindow *);
+
+	CompWindow *window;
+
+	GridScreen      *gScreen;
+
+	bool grabIsMove;
+
+	void
+	grabNotify (int, int, unsigned int, unsigned int);
+
+	void
+	ungrabNotify ();
+
+	void
+	sendMaximizationRequest ();
+};
+
+#define GRID_SCREEN(s) \
+    GridScreen *gs = GridScreen::get (s)
+
+#define GRID_WINDOW(w) \
+    GridWindow *gw = GridWindow::get (w)
+
 class GridPluginVTable :
-    public CompPlugin::VTableForScreen <GridScreen>
+    public CompPlugin::VTableForScreenAndWindow <GridScreen, GridWindow>
 {
     public:
 
