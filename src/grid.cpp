@@ -334,7 +334,7 @@ GridWindow::ungrabNotify ()
 	o.push_back (CompOption ("window", CompOption::TypeInt));
 	o[0].value ().set ((int) window->id ());
 
-	gs->initiateCommon (0, 0, o, gs->dropLocation ());
+	gScreen->initiateCommon (0, 0, o, gScreen->dropLocation ());
 
 	screen->handleEventSetEnabled (gScreen, false);
 	grabIsMove = false;
