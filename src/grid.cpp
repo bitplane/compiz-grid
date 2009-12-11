@@ -126,8 +126,7 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	if (where == GridMaximize)
 	{
-	    GRID_WINDOW (cw);
-	    gw->sendMaximizationRequest ();
+	    GridWindow::get (cw)->sendMaximizationRequest ();
 	    return true;
 	}
 
