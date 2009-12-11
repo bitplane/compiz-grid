@@ -114,7 +114,7 @@ GridScreen::initiateCommon (CompAction         *action,
     xid = CompOption::getIntOptionNamed (option, "window");
     cw  = screen->findWindow (xid);
 
-	if (where == GridUnknown)
+    if (where == GridUnknown)
 	return false;
 
     if (cw)
@@ -126,8 +126,8 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	if (where == GridMaximize)
 	{
-		GRID_WINDOW (cw);
-		gw->sendMaximizationRequest ();
+	    GRID_WINDOW (cw);
+	    gw->sendMaximizationRequest ();
 	    return true;
 	}
 
@@ -234,41 +234,39 @@ GridScreen::initiateCommon (CompAction         *action,
 GridType
 GridScreen::dropLocation ()
 {
-	GridType ret = GridUnknown;
+    GridType ret = GridUnknown;
 
-	switch (edge)
-	{
-		case NoEdge:
-		break;
-		case Left:
-			ret = (GridType) optionGetLeftEdgeAction ();
-		break;
-		case Right:
-			ret = (GridType) optionGetRightEdgeAction ();
-		break;
-		case Top:
-			ret = (GridType) optionGetTopEdgeAction ();
-		break;
-		case Bottom:
-			ret = (GridType) optionGetBottomEdgeAction ();
-		break;
-		case TopLeft:
-			ret = (GridType) optionGetTopLeftCornerAction ();
-		break;
-		case TopRight:
-			ret = (GridType) optionGetTopRightCornerAction ();
-		break;
-		case BottomLeft:
-			ret = (GridType) optionGetBottomLeftCornerAction ();
-		break;
-		case BottomRight:
-			ret = (GridType) optionGetBottomRightCornerAction ();
-		break;
+    switch (edge) {
+	case Left:
+	    ret = (GridType) optionGetLeftEdgeAction ();
+	    break;
+	case Right:
+	    ret = (GridType) optionGetRightEdgeAction ();
+	    break;
+	case Top:
+	    ret = (GridType) optionGetTopEdgeAction ();
+	    break;
+	case Bottom:
+	    ret = (GridType) optionGetBottomEdgeAction ();
+	    break;
+	case TopLeft:
+	    ret = (GridType) optionGetTopLeftCornerAction ();
+	    break;
+	case TopRight:
+	    ret = (GridType) optionGetTopRightCornerAction ();
+	    break;
+	case BottomLeft:
+	    ret = (GridType) optionGetBottomLeftCornerAction ();
+	    break;
+	case BottomRight:
+	    ret = (GridType) optionGetBottomRightCornerAction ();
+	    break;
+	case NoEdge:
+	default:
+	    break;
+    }
 
-		default:
-		break;
-	}
-	return ret;
+    return ret;
 }
 
 void
@@ -277,73 +275,72 @@ GridScreen::handleEvent (XEvent *event)
     screen->handleEvent (event);
 
     if (event->type != MotionNotify)
-    return;
+	return;
 
-	/* TODO: show some visual indication of how the window will be resized */
+    /* TODO: show some visual indication of how the window will be resized */
 
-	/* Detect corners first */
-	/* Bottom Left */
-	if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()) &&
-		pointerX < optionGetLeftEdgeThreshold())
-		edge = BottomLeft;
-	/* Bottom Right */
-	else if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()) &&
-			pointerX > (screen->width() - optionGetRightEdgeThreshold()))
-		edge = BottomRight;
-	/* Top Left */
-	else if (pointerY < optionGetTopEdgeThreshold() && pointerX < optionGetLeftEdgeThreshold())
-		edge = TopLeft;
-	/* Top Right */
-	else if (pointerY < optionGetTopEdgeThreshold() &&
-			pointerX > (screen->width() - optionGetRightEdgeThreshold()))
-		edge = TopRight;
-	/* Left */
-	else if (pointerX < optionGetLeftEdgeThreshold())
-		edge = Left;
-	/* Right */
-	else if (pointerX > (screen->width() - optionGetRightEdgeThreshold()))
-		edge = Right;
-	/* Top */
-	else if (pointerY < optionGetTopEdgeThreshold())
-		edge = Top;
-	/* Bottom */
-	else if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()))
-		edge = Bottom;
-	/* No Edge */
-	else
-		edge = NoEdge;
+    /* Detect corners first */
+    /* Bottom Left */
+    if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()) &&
+	pointerX < optionGetLeftEdgeThreshold())
+	edge = BottomLeft;
+    /* Bottom Right */
+    else if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()) &&
+	     pointerX > (screen->width() - optionGetRightEdgeThreshold()))
+	edge = BottomRight;
+    /* Top Left */
+    else if (pointerY < optionGetTopEdgeThreshold() &&
+	    pointerX < optionGetLeftEdgeThreshold())
+	edge = TopLeft;
+    /* Top Right */
+    else if (pointerY < optionGetTopEdgeThreshold() &&
+	     pointerX > (screen->width() - optionGetRightEdgeThreshold()))
+	edge = TopRight;
+    /* Left */
+    else if (pointerX < optionGetLeftEdgeThreshold())
+	edge = Left;
+    /* Right */
+    else if (pointerX > (screen->width() - optionGetRightEdgeThreshold()))
+	edge = Right;
+    /* Top */
+    else if (pointerY < optionGetTopEdgeThreshold())
+	edge = Top;
+    /* Bottom */
+    else if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()))
+	edge = Bottom;
+    /* No Edge */
+    else
+	edge = NoEdge;
 }
 
 void
-GridWindow::grabNotify (int x,
-			int y,
+GridWindow::grabNotify (int          x,
+			int          y,
 			unsigned int state,
 			unsigned int mask)
 {
-	screen->handleEventSetEnabled(gScreen, true);
+    screen->handleEventSetEnabled (gScreen, true);
 
-	if (mask & CompWindowGrabMoveMask)
+    if (mask & CompWindowGrabMoveMask)
 	grabIsMove = true;
 }
 
 void
 GridWindow::ungrabNotify ()
 {
-	GRID_SCREEN (screen);
+    if (grabIsMove)
+    {
+	CompOption::Vector o;
+	o.push_back (CompOption ("window", CompOption::TypeInt));
+	o[0].value ().set ((int) window->id ());
 
-	if (grabIsMove)
-	{
-		screen->handleEventSetEnabled(gScreen, false);
-		grabIsMove = false;
+	gs->initiateCommon (0, 0, o, gs->dropLocation ());
 
-		CompOption::Vector o;
-		o.push_back (CompOption ("window", CompOption::TypeInt));
-		o[0].value ().set ((int) window->id ());
+	screen->handleEventSetEnabled (gScreen, false);
+	grabIsMove = false;
+    }
 
-		gs->initiateCommon (0, 0, o, gs->dropLocation());
-	}
-
-	gs->edge = NoEdge;
+    gScreen->edge = NoEdge;
 }
 
 
@@ -369,8 +366,7 @@ GridScreen::GridScreen (CompScreen *screen) :
 
 #undef GRIDSET
 
-	ScreenInterface::setHandler (screen, false);
-
+    ScreenInterface::setHandler (screen, false);
 }
 
 GridWindow::GridWindow (CompWindow *window) :

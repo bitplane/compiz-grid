@@ -60,7 +60,7 @@ enum Edges
     Right,
     TopLeft,
     Top,
-    TopRight	
+    TopRight
 };
 
 class GridScreen :
@@ -101,8 +101,7 @@ class GridWindow :
 	GridWindow (CompWindow *);
 
 	CompWindow *window;
-
-	GridScreen      *gScreen;
+	GridScreen *gScreen;
 
 	bool grabIsMove;
 
