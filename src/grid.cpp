@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008 Stephen Kennedy <suasol@gmail.com>
  * Copyright (c) 2010 Scott Moreau <oreaus@gmail.com>
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -18,7 +18,7 @@
  *
  * Plugin to act like winsplit revolution (http://www.winsplit-revolution.com/)
  * use <Control><Alt>NUMPAD_KEY to move and tile your windows.
- * 
+ *
  * Press the tiling keys several times to cycle through some tiling options.
  */
 
@@ -348,7 +348,7 @@ GridScreen::edgeToGridType ()
 	break;
     }
 
-    return ret;    
+    return ret;
 }
 
 void
