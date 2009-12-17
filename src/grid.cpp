@@ -121,9 +121,9 @@ GridScreen::getTargetRect (CompOption::Vector &option, GridType where)
     if (cw)
     {
 	if (edge != NoEdge)
-	props = gridProps[edgeToGridType ()];
+	    props = gridProps[edgeToGridType ()];
 	else
-	props = gridProps[where];
+	    props = gridProps[where];
 
 	/* get current available area */
 	workarea = screen->getWorkareaForOutput (cw->outputDevice ());
@@ -255,15 +255,11 @@ GridScreen::initiateCommon (CompAction         *action,
 
 void
 GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
-				const GLMatrix            &transform,
-				CompOutput                *output)
+			      const GLMatrix            &transform,
+			      CompOutput                *output)
 {
-    CompRect   rect;
+    CompRect rect;
     GLMatrix sTransform (transform);
-    unsigned short *borderColor, *fillColor;
-
-    borderColor = optionGetOutlineColor ();
-    fillColor   = optionGetFillColor ();
 
     getPaintRectangle (rect);
 
@@ -277,11 +273,11 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
     glEnable (GL_BLEND);
 
     /* fill rectangle */
-    glColor4usv (fillColor);
+    glColor4usv (optionGetFillColor ());
     glRecti (rect.x1 (), rect.y2 (), rect.x2 (), rect.y1 ());
 
     /* draw outline */
-    glColor4usv (borderColor);
+    glColor4usv (optionGetOutlineColor ());
     glLineWidth (2.0);
     glBegin (GL_LINE_LOOP);
     glVertex2i (rect.x1 (), rect.y1 ());
@@ -319,38 +315,36 @@ GridScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
 GridType
 GridScreen::edgeToGridType ()
 {
-    GridType ret = GridUnknown;
+    GridType ret;
 
-    switch (edge)
-    {
-	case NoEdge:
+    switch (edge) {
+    case Left:
+	ret = (GridType) optionGetLeftEdgeAction ();
 	break;
-	case Left:
-		ret = (GridType) optionGetLeftEdgeAction ();
+    case Right:
+	ret = (GridType) optionGetRightEdgeAction ();
 	break;
-	case Right:
-		ret = (GridType) optionGetRightEdgeAction ();
+    case Top:
+	ret = (GridType) optionGetTopEdgeAction ();
 	break;
-	case Top:
-		ret = (GridType) optionGetTopEdgeAction ();
+    case Bottom:
+	ret = (GridType) optionGetBottomEdgeAction ();
 	break;
-	case Bottom:
-		ret = (GridType) optionGetBottomEdgeAction ();
+    case TopLeft:
+	ret = (GridType) optionGetTopLeftCornerAction ();
 	break;
-	case TopLeft:
-		ret = (GridType) optionGetTopLeftCornerAction ();
+    case TopRight:
+	ret = (GridType) optionGetTopRightCornerAction ();
 	break;
-	case TopRight:
-		ret = (GridType) optionGetTopRightCornerAction ();
+    case BottomLeft:
+	ret = (GridType) optionGetBottomLeftCornerAction ();
 	break;
-	case BottomLeft:
-		ret = (GridType) optionGetBottomLeftCornerAction ();
+    case BottomRight:
+	ret = (GridType) optionGetBottomRightCornerAction ();
 	break;
-	case BottomRight:
-		ret = (GridType) optionGetBottomRightCornerAction ();
-	break;
-
-	default:
+    case NoEdge:
+    default:
+	ret = GridUnknown;
 	break;
     }
 
