@@ -504,6 +504,34 @@
 			</option>
 			</subgroup>
 	    </group>
+	    <group>
+		<_short>Appearance</_short>
+		<option name="draw_indicator" type="bool">
+			<_short>Draw Indicator</_short>
+			<_long>Draw Window Resize Indicator</_long>
+			<default>false</default>
+		</option>
+		<option name="outline_color" type="color">
+			<_short>Outline Color</_short>
+			<_long>Color of the resize indicator outline</_long>
+			<default>
+			    <red>0x2f2f</red>
+			    <green>0x2f2f</green>
+			    <blue>0x4f4f</blue>
+			    <alpha>0x9f9f</alpha>
+			</default>
+		</option>
+		<option name="fill_color" type="color">
+			<_short>Fill Color</_short>
+			<_long>Fill color of the resize indicator</_long>
+			<default>
+			    <red>0x2f2f</red>
+			    <green>0x2f2f</green>
+			    <blue>0x4f4f</blue>
+			    <alpha>0x4f4f</alpha>
+			</default>
+		</option>
+	    </group>
 	</options>
     </plugin>
 </compiz>

@@ -2,6 +2,7 @@
  * Compiz Fusion Grid plugin
  *
  * Copyright (c) 2008 Stephen Kennedy <suasol@gmail.com>
+ * Copyright (c) 2010 Scott Moreau <oreaus@gmail.com>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +25,8 @@
 #include <core/core.h>
 #include <core/atoms.h>
 #include <core/pluginclasshandler.h>
+#include <composite/composite.h>
+#include <opengl/opengl.h>
 
 #include "grid_options.h"
 
@@ -65,22 +68,37 @@ enum Edges
 
 class GridScreen :
     public ScreenInterface,
+    public CompositeScreenInterface,
+    public GLScreenInterface,
     public PluginClassHandler <GridScreen, CompScreen>,
     public GridOptions
 {
     public:
 
-	void handleEvent (XEvent *event);
-
 	GridScreen (CompScreen *);
+	CompositeScreen *cScreen;
+	GLScreen        *glScreen;
 
-	bool
-	initiateCommon (CompAction*, CompAction::State,	CompOption::Vector&, GridType);
-
+	CompRect workarea, currentRect, desiredSlot, desiredRect;
+	GridProps props;
 	Edges edge;
 
-	GridType
-	dropLocation ();
+	void getPaintRectangle (CompRect&);
+
+	void getTargetRect (CompOption::Vector&, GridType);
+
+	bool initiateCommon (CompAction*, CompAction::State, CompOption::Vector&, GridType);
+
+	void glPaintRectangle (const GLScreenPaintAttrib&,
+			       const GLMatrix&, CompOutput *);
+
+	bool glPaintOutput (const GLScreenPaintAttrib &,
+			    const GLMatrix &, const CompRegion &,
+			    CompOutput *, unsigned int);
+
+	GridType edgeToGridType ();
+
+	void handleEvent (XEvent *event);
 
     private:
 
@@ -94,25 +112,21 @@ class GridScreen :
 
 class GridWindow :
     public WindowInterface,
-	public PluginClassHandler <GridWindow, CompWindow>
+    public PluginClassHandler <GridWindow, CompWindow>
 {
-	public:
+    public:
 
 	GridWindow (CompWindow *);
-
 	CompWindow *window;
 	GridScreen *gScreen;
 
 	bool grabIsMove;
 
-	void
-	grabNotify (int, int, unsigned int, unsigned int);
+	void grabNotify (int, int, unsigned int, unsigned int);
 
-	void
-	ungrabNotify ();
+	void ungrabNotify ();
 
-	void
-	sendMaximizationRequest ();
+	void sendMaximizationRequest ();
 };
 
 class GridPluginVTable :
