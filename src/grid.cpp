@@ -258,7 +258,7 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
 			      const GLMatrix            &transform,
 			      CompOutput                *output)
 {
-    CompRect rect, outline;
+    CompRect rect;
     GLMatrix sTransform (transform);
 
     getPaintRectangle (rect);
@@ -277,7 +277,8 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
     glRecti (rect.x1 (), rect.y2 (), rect.x2 (), rect.y1 ());
 
     /* Set outline rect smaller to avoid damage issues */
-    outline.setGeometry (rect.x () + 1, rect.y () + 1, rect.width () - 2, rect.height () - 2);
+    rect.setGeometry (rect.x () + 1, rect.y () + 1,
+		      rect.width () - 2, rect.height () - 2);
 
     /* draw outline */
     glColor4usv (optionGetOutlineColor ());
@@ -354,9 +355,9 @@ GridScreen::edgeToGridType ()
 void
 GridScreen::handleEvent (XEvent *event)
 {
-    screen->handleEvent (event);
-
     bool damage = false;
+
+    screen->handleEvent (event);
 
     if (event->type != MotionNotify)
 	return;
