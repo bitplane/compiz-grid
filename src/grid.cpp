@@ -258,7 +258,7 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
 			      const GLMatrix            &transform,
 			      CompOutput                *output)
 {
-    CompRect rect;
+    CompRect rect, outline;
     GLMatrix sTransform (transform);
 
     getPaintRectangle (rect);
@@ -276,14 +276,17 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
     glColor4usv (optionGetFillColor ());
     glRecti (rect.x1 (), rect.y2 (), rect.x2 (), rect.y1 ());
 
+    /* Set outline rect smaller to avoid damage issues */
+    outline.setGeometry (rect.x () + 1, rect.y () + 1, rect.width () - 2, rect.height () - 2);
+
     /* draw outline */
     glColor4usv (optionGetOutlineColor ());
     glLineWidth (2.0);
     glBegin (GL_LINE_LOOP);
-    glVertex2i (rect.x1 (), rect.y1 ());
-    glVertex2i (rect.x2 (), rect.y1 ());
-    glVertex2i (rect.x2 (), rect.y2 ());
-    glVertex2i (rect.x1 (), rect.y2 ());
+    glVertex2i (outline.x1 (), outline.y1 ());
+    glVertex2i (outline.x2 (), outline.y1 ());
+    glVertex2i (outline.x2 (), outline.y2 ());
+    glVertex2i (outline.x1 (), outline.y2 ());
     glEnd ();
 
     /* clean up */
@@ -291,9 +294,6 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
     glDisable (GL_BLEND);
     glEnableClientState (GL_TEXTURE_COORD_ARRAY);
     glPopMatrix ();
-
-    if (cScreen)
-	cScreen->damageRegion (rect);
 }
 
 bool
@@ -356,6 +356,8 @@ GridScreen::handleEvent (XEvent *event)
 {
     screen->handleEvent (event);
 
+    bool damage = false;
+
     if (event->type != MotionNotify)
 	return;
 
@@ -392,6 +394,15 @@ GridScreen::handleEvent (XEvent *event)
     else
 	edge = NoEdge;
 
+    if (lastEdge != edge)
+    {
+	lastEdge = edge;
+	damage = true;
+
+	if (cScreen)
+	    cScreen->damageRegion (desiredSlot);
+    }
+
     if (edge != NoEdge)
     {
 	CompOption::Vector o;
@@ -399,6 +410,9 @@ GridScreen::handleEvent (XEvent *event)
 	o[0].value ().set ((int) event->xclient.window);
 	getTargetRect (o, edgeToGridType ());
     }
+
+    if (cScreen && damage)
+	cScreen->damageRegion (desiredSlot);
 }
 
 void
@@ -429,6 +443,7 @@ GridWindow::ungrabNotify ()
 	screen->handleEventSetEnabled (gScreen, false);
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, false);
 	grabIsMove = false;
+	gScreen->cScreen->damageRegion (gScreen->desiredSlot);
     }
 
     gScreen->edge = NoEdge;
@@ -446,7 +461,7 @@ GridScreen::GridScreen (CompScreen *screen) :
     CompositeScreenInterface::setHandler (cScreen, false);
     GLScreenInterface::setHandler (glScreen, false);
 
-    edge = NoEdge;
+    edge = lastEdge = NoEdge;
 
 #define GRIDSET(opt,where)			                             \
     optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon,this, \

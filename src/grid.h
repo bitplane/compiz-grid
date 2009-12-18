@@ -81,7 +81,7 @@ class GridScreen :
 
 	CompRect workarea, currentRect, desiredSlot, desiredRect;
 	GridProps props;
-	Edges edge;
+	Edges edge, lastEdge;
 
 	void getPaintRectangle (CompRect&);
 
