@@ -283,10 +283,10 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
     glColor4usv (optionGetOutlineColor ());
     glLineWidth (2.0);
     glBegin (GL_LINE_LOOP);
-    glVertex2i (outline.x1 (), outline.y1 ());
-    glVertex2i (outline.x2 (), outline.y1 ());
-    glVertex2i (outline.x2 (), outline.y2 ());
-    glVertex2i (outline.x1 (), outline.y2 ());
+    glVertex2i (rect.x1 (), rect.y1 ());
+    glVertex2i (rect.x2 (), rect.y1 ());
+    glVertex2i (rect.x2 (), rect.y2 ());
+    glVertex2i (rect.x1 (), rect.y2 ());
     glEnd ();
 
     /* clean up */
