@@ -125,6 +125,10 @@ GridScreen::getTargetRect (CompOption::Vector &option, GridType where)
 	else
 	    props = gridProps[where];
 
+	/* Treat Maximize visual indicator same as GridCenter */
+	if (edgeToGridType () == GridMaximize)
+	    props = gridProps[GridCenter];
+
 	/* get current available area */
 	workarea = screen->getWorkareaForOutput (cw->outputDevice ());
 
