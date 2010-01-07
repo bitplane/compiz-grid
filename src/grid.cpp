@@ -90,25 +90,54 @@ GridScreen::getPaintRectangle (CompRect &cRect)
 	cRect.setGeometry (0, 0, 0, 0);
 }
 
-void
-GridScreen::getTargetRect (CompOption::Vector &option, GridType where)
+bool
+GridScreen::initiateCommon (CompAction         *action,
+			    CompAction::State  state,
+			    CompOption::Vector &option,
+			    GridType           where,
+			    bool               resize)
 {
+    Window     xid;
+    CompWindow *cw = 0;
 
-    Window     xid = CompOption::getIntOptionNamed (option, "window");
-    CompWindow *cw = screen->findWindow (xid);
+    xid = CompOption::getIntOptionNamed (option, "window");
+    cw  = screen->findWindow (xid);
+
+    if (where == GridUnknown || screen->otherGrabExist ("move", 0))
+	return false;
 
     if (cw)
     {
-	if (edge != NoEdge)
-	    props = gridProps[edgeToGridType ()];
-	else
-	    props = gridProps[where];
+	XWindowChanges xwc;
 
 	/* get current available area */
 	if (GridWindow::get (cw)->grabIsMove)
 	    workarea = screen->getWorkareaForOutput (screen->outputDeviceForPoint (pointerX, pointerY));
 	else
 	    workarea = screen->getWorkareaForOutput (cw->outputDevice ());
+
+	if (cw->state () & MAXIMIZE_STATE)
+	{
+	    /* maximized state interferes with us, clear it */
+	    cw->maximize (0);
+	}
+
+	if (where == GridMaximize && resize)
+	{
+	    /* move the window to the correct output */
+	    if (GridWindow::get (cw)->grabIsMove)
+	    {
+		xwc.x = workarea.x ();
+		xwc.y = workarea.y ();
+		xwc.width = workarea.width ();
+		xwc.height = workarea.height ();
+		cw->configureXWindow (CWX | CWY, &xwc);
+	    }
+	    cw->maximize (MAXIMIZE_STATE);
+	    return true;
+	}
+
+	props = gridProps[where];
 
 	/* Convention:
 	 * xxxSlot include decorations (it's the screen area occupied)
@@ -130,50 +159,6 @@ GridScreen::getTargetRect (CompOption::Vector &option, GridType where)
 	currentRect.setGeometry (cw->serverX (), cw->serverY (),
 				 cw->serverWidth (),
 				 cw->serverHeight ());
-    }
-}
-
-bool
-GridScreen::initiateCommon (CompAction         *action,
-			    CompAction::State  state,
-			    CompOption::Vector &option,
-			    GridType           where)
-{
-    Window     xid;
-    CompWindow *cw = 0;
-
-    xid = CompOption::getIntOptionNamed (option, "window");
-    cw  = screen->findWindow (xid);
-
-    if (where == GridUnknown || screen->otherGrabExist ("move", 0))
-	return false;
-
-    if (cw)
-    {
-	XWindowChanges xwc;
-
-	if (cw->state () & MAXIMIZE_STATE)
-	{
-	    /* maximized state interferes with us, clear it */
-	    cw->maximize (0);
-	}
-
-	if (where == GridMaximize)
-	{
-	    /* move the window to the correct output */
-	    if (GridWindow::get (cw)->grabIsMove)
-	    {
-		xwc.x = workarea.x ();
-		xwc.y = workarea.y ();
-		xwc.width = workarea.width ();
-		xwc.height = workarea.height ();
-		cw->configureXWindow (CWX | CWY, &xwc);
-	    }
-	    cw->maximize (MAXIMIZE_STATE);
-	    return true;
-	}
-
-	getTargetRect (option, where);
 
 	if (desiredRect == currentRect)
 	{
@@ -238,6 +223,7 @@ GridScreen::initiateCommon (CompAction         *action,
 	    cw->sendSyncRequest ();
 
 	/* TODO: animate move+resize */
+	if (resize)
 	cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
     }
 
@@ -396,7 +382,7 @@ GridScreen::handleEvent (XEvent *event)
     }
 
     if (edge != NoEdge)
-	getTargetRect (o, edgeToGridType ());
+	initiateCommon (0, 0, o, edgeToGridType (), false);
 
     if (cScreen && damage)
 	cScreen->damageRegion (desiredSlot);
@@ -424,7 +410,7 @@ GridWindow::ungrabNotify ()
 {
     if (grabIsMove)
     {
-	gScreen->initiateCommon (0, 0, gScreen->o, gScreen->edgeToGridType ());
+	gScreen->initiateCommon (0, 0, gScreen->o, gScreen->edgeToGridType (), true);
 
 	screen->handleEventSetEnabled (gScreen, false);
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, false);
@@ -449,20 +435,20 @@ GridScreen::GridScreen (CompScreen *screen) :
 
     edge = lastEdge = NoEdge;
 
-#define GRIDSET(opt,where)			                             \
+#define GRIDSET(opt,where,resize)			                             \
     optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon,this, \
-					   _1, _2, _3, where))
+					   _1, _2, _3, where, resize))
 
-    GRIDSET (PutCenterKey, GridCenter);
-    GRIDSET (PutLeftKey, GridLeft);
-    GRIDSET (PutRightKey, GridRight);
-    GRIDSET (PutTopKey, GridTop);
-    GRIDSET (PutBottomKey, GridBottom);
-    GRIDSET (PutTopleftKey, GridTopLeft);
-    GRIDSET (PutToprightKey, GridTopRight);
-    GRIDSET (PutBottomleftKey, GridBottomLeft);
-    GRIDSET (PutBottomrightKey, GridBottomRight);
-    GRIDSET (PutMaximizeKey, GridMaximize);
+    GRIDSET (PutCenterKey, GridCenter, true);
+    GRIDSET (PutLeftKey, GridLeft, true);
+    GRIDSET (PutRightKey, GridRight, true);
+    GRIDSET (PutTopKey, GridTop, true);
+    GRIDSET (PutBottomKey, GridBottom, true);
+    GRIDSET (PutTopleftKey, GridTopLeft, true);
+    GRIDSET (PutToprightKey, GridTopRight, true);
+    GRIDSET (PutBottomleftKey, GridBottomLeft, true);
+    GRIDSET (PutBottomrightKey, GridBottomRight, true);
+    GRIDSET (PutMaximizeKey, GridMaximize, true);
 
 #undef GRIDSET
 

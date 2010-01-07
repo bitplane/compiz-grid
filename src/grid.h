@@ -86,10 +86,8 @@ class GridScreen :
 
 	void getPaintRectangle (CompRect&);
 
-	void getTargetRect (CompOption::Vector&, GridType);
-
 	bool initiateCommon (CompAction*, CompAction::State,
-			     CompOption::Vector&, GridType);
+			     CompOption::Vector&, GridType, bool);
 
 	void glPaintRectangle (const GLScreenPaintAttrib&,
 			       const GLMatrix&, CompOutput *);
