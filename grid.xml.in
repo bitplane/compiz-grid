@@ -524,7 +524,7 @@
 		<option name="draw_indicator" type="bool">
 			<_short>Draw Indicator</_short>
 			<_long>Draw Window Resize Indicator</_long>
-			<default>false</default>
+			<default>true</default>
 		</option>
 		<option name="outline_color" type="color">
 			<_short>Outline Color</_short>
