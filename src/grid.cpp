@@ -116,7 +116,7 @@ GridScreen::initiateCommon (CompAction         *action,
 	else
 	    workarea = screen->getWorkareaForOutput (cw->outputDevice ());
 
-	if (cw->state () & MAXIMIZE_STATE)
+	if ((cw->state () & MAXIMIZE_STATE) && (resize || optionGetSnapoffMaximized ()))
 	{
 	    /* maximized state interferes with us, clear it */
 	    cw->maximize (0);

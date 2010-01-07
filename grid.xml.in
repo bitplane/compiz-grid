@@ -481,6 +481,11 @@
 				<_name>Maximize</_name>
 			    </desc>
 			</option>
+			<option name="snapoff_maximized" type="bool">
+				<_short>Snapoff maximized windows</_short>
+				<_long>Snapoff maximized windows when pulling to edge.</_long>
+				<default>false</default>
+			</option>
 		</subgroup>
 		<subgroup>
 			<_short>Thresholds</_short>
