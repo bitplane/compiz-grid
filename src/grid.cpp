@@ -57,10 +57,9 @@ CompRect
 GridScreen::constrainSize (CompWindow      *w,
 			   const CompRect& slot)
 {
-    CompRect workarea, result;
+    CompRect result;
     int      cw, ch;
 
-    workarea = screen->getWorkareaForOutput (w->outputDevice ());
     result   = slotToRect (w, slot);
 
     if (w->constrainNewWindowSize (result.width (), result.height (), &cw, &ch))
