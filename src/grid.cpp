@@ -372,20 +372,34 @@ GridScreen::handleEvent (XEvent *event)
     else
 	edge = NoEdge;
 
-    if (lastEdge != edge)
+    /* Detect when cursor enters another output */
+    currentWorkarea = screen->getWorkareaForOutput (screen->outputDeviceForPoint (pointerX, pointerY));
+    if (lastWorkarea != currentWorkarea)
     {
-	lastEdge = edge;
-	damage = true;
+	lastWorkarea = currentWorkarea;
+
+	if (cScreen)
+	    cScreen->damageRegion (desiredSlot);
+
+	initiateCommon (0, 0, o, edgeToGridType (), false);
 
 	if (cScreen)
 	    cScreen->damageRegion (desiredSlot);
     }
 
-    if (edge != NoEdge)
+    /* Detect edge region change */
+    if (lastEdge != edge)
+    {
+	lastEdge = edge;
+
+	if (cScreen)
+	    cScreen->damageRegion (desiredSlot);
+
 	initiateCommon (0, 0, o, edgeToGridType (), false);
 
-    if (cScreen && damage)
-	cScreen->damageRegion (desiredSlot);
+	if (cScreen)
+	    cScreen->damageRegion (desiredSlot);
+    }
 }
 
 void
@@ -434,6 +448,7 @@ GridScreen::GridScreen (CompScreen *screen) :
     GLScreenInterface::setHandler (glScreen, false);
 
     edge = lastEdge = NoEdge;
+    currentWorkarea = lastWorkarea = screen->getWorkareaForOutput (screen->outputDeviceForPoint (pointerX, pointerY));
 
 #define GRIDSET(opt,where,resize)			                             \
     optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon,this, \

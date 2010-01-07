@@ -79,7 +79,7 @@ class GridScreen :
 	CompositeScreen *cScreen;
 	GLScreen        *glScreen;
 
-	CompRect workarea, currentRect, desiredSlot, desiredRect;
+	CompRect workarea, currentRect, desiredSlot, desiredRect, lastWorkarea, currentWorkarea;
 	GridProps props;
 	Edges edge, lastEdge;
 	CompOption::Vector o;
