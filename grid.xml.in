@@ -4,6 +4,16 @@
 	<_short>Grid</_short>
 	<_long>Warp and resize windows to fit an imaginary grid.</_long>
 	<category>Window Management</category>
+	<deps>
+	    <requirement>
+		<plugin>composite</plugin>
+		<plugin>opengl</plugin>
+	    </requirement>
+	    <relation type="after">
+		<plugin>composite</plugin>
+		<plugin>opengl</plugin>
+	    </relation>
+	</deps>
 	<options>
 	    <group>
 		<_short>Bindings</_short>
