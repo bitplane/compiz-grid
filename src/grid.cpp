@@ -39,6 +39,8 @@ static const GridProps gridProps[] =
     {0,0, 2,2},
     {0,0, 1,2},
     {1,0, 2,2},
+
+    {0,0, 1,1},
 };
 
 CompRect
@@ -80,29 +82,6 @@ GridScreen::constrainSize (CompWindow      *w,
 }
 
 void
-GridWindow::sendMaximizationRequest ()
-{
-    XEvent  xev;
-    Display *dpy = screen->dpy ();
-
-    xev.xclient.type    = ClientMessage;
-    xev.xclient.display = dpy;
-    xev.xclient.format  = 32;
-
-    xev.xclient.message_type = Atoms::winState;
-    xev.xclient.window	     = window->id ();
-
-    xev.xclient.data.l[0] = 1;
-    xev.xclient.data.l[1] = Atoms::winStateMaximizedHorz;
-    xev.xclient.data.l[2] = Atoms::winStateMaximizedVert;
-    xev.xclient.data.l[3] = 0;
-    xev.xclient.data.l[4] = 0;
-
-    XSendEvent (dpy, screen->root (), false,
-		SubstructureRedirectMask | SubstructureNotifyMask, &xev);
-}
-
-void
 GridScreen::getPaintRectangle (CompRect &cRect)
 {
     if (edge != NoEdge && optionGetDrawIndicator ())
@@ -125,12 +104,11 @@ GridScreen::getTargetRect (CompOption::Vector &option, GridType where)
 	else
 	    props = gridProps[where];
 
-	/* Treat Maximize visual indicator same as GridCenter */
-	if (edgeToGridType () == GridMaximize)
-	    props = gridProps[GridCenter];
-
 	/* get current available area */
-	workarea = screen->getWorkareaForOutput (cw->outputDevice ());
+	if (GridWindow::get (cw)->grabIsMove)
+	    workarea = screen->getWorkareaForOutput (screen->outputDeviceForPoint (pointerX, pointerY));
+	else
+	    workarea = screen->getWorkareaForOutput (cw->outputDevice ());
 
 	/* Convention:
 	 * xxxSlot include decorations (it's the screen area occupied)
@@ -174,9 +152,24 @@ GridScreen::initiateCommon (CompAction         *action,
     {
 	XWindowChanges xwc;
 
+	if (cw->state () & MAXIMIZE_STATE)
+	{
+	    /* maximized state interferes with us, clear it */
+	    cw->maximize (0);
+	}
+
 	if (where == GridMaximize)
 	{
-	    GridWindow::get (cw)->sendMaximizationRequest ();
+	    /* move the window to the correct output */
+	    if (GridWindow::get (cw)->grabIsMove)
+	    {
+		xwc.x = workarea.x ();
+		xwc.y = workarea.y ();
+		xwc.width = workarea.width ();
+		xwc.height = workarea.height ();
+		cw->configureXWindow (CWX | CWY, &xwc);
+	    }
+	    cw->maximize (MAXIMIZE_STATE);
 	    return true;
 	}
 
@@ -243,12 +236,6 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	if (cw->mapNum ())
 	    cw->sendSyncRequest ();
-
-	if (cw->state () & MAXIMIZE_STATE)
-	{
-	    /* maximized state interferes with us, clear it */
-	    cw->maximize (0);
-	}
 
 	/* TODO: animate move+resize */
 	cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
@@ -409,12 +396,7 @@ GridScreen::handleEvent (XEvent *event)
     }
 
     if (edge != NoEdge)
-    {
-	CompOption::Vector o;
-	o.push_back (CompOption ("window", CompOption::TypeInt));
-	o[0].value ().set ((int) event->xclient.window);
 	getTargetRect (o, edgeToGridType ());
-    }
 
     if (cScreen && damage)
 	cScreen->damageRegion (desiredSlot);
@@ -428,6 +410,9 @@ GridWindow::grabNotify (int          x,
 {
     if (screen->grabExist ("move"))
     {
+	gScreen->o.push_back (CompOption ("window", CompOption::TypeInt));
+	gScreen->o[0].value ().set ((int) window->id ());
+
 	screen->handleEventSetEnabled (gScreen, true);
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, true);
 	grabIsMove = true;
@@ -439,11 +424,7 @@ GridWindow::ungrabNotify ()
 {
     if (grabIsMove)
     {
-	CompOption::Vector o;
-	o.push_back (CompOption ("window", CompOption::TypeInt));
-	o[0].value ().set ((int) window->id ());
-
-	gScreen->initiateCommon (0, 0, o, gScreen->edgeToGridType ());
+	gScreen->initiateCommon (0, 0, gScreen->o, gScreen->edgeToGridType ());
 
 	screen->handleEventSetEnabled (gScreen, false);
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, false);

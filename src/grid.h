@@ -82,6 +82,7 @@ class GridScreen :
 	CompRect workarea, currentRect, desiredSlot, desiredRect;
 	GridProps props;
 	Edges edge, lastEdge;
+	CompOption::Vector o;
 
 	void getPaintRectangle (CompRect&);
 
@@ -126,8 +127,6 @@ class GridWindow :
 	void grabNotify (int, int, unsigned int, unsigned int);
 
 	void ungrabNotify ();
-
-	void sendMaximizationRequest ();
 };
 
 class GridPluginVTable :
