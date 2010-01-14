@@ -331,8 +331,6 @@ GridScreen::edgeToGridType ()
 void
 GridScreen::handleEvent (XEvent *event)
 {
-    bool damage = false;
-
     screen->handleEvent (event);
 
     if (event->type != MotionNotify)
