@@ -83,7 +83,7 @@ GridScreen::constrainSize (CompWindow      *w,
 void
 GridScreen::getPaintRectangle (CompRect &cRect)
 {
-    if (edge != NoEdge && optionGetDrawIndicator ())
+    if (edgeToGridType () != GridUnknown && optionGetDrawIndicator ())
 	cRect = desiredSlot;
     else
 	cRect.setGeometry (0, 0, 0, 0);
