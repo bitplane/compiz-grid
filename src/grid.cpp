@@ -102,7 +102,7 @@ GridScreen::initiateCommon (CompAction         *action,
     xid = CompOption::getIntOptionNamed (option, "window");
     cw  = screen->findWindow (xid);
 
-    if (where == GridUnknown || screen->otherGrabExist ("move", 0))
+    if (where == GridUnknown || screen->otherGrabExist ("move", NULL))
 	return false;
 
     if (cw)
