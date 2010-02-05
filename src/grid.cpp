@@ -83,7 +83,7 @@ GridScreen::constrainSize (CompWindow      *w,
 void
 GridScreen::getPaintRectangle (CompRect &cRect)
 {
-    if (edge != NoEdge && optionGetDrawIndicator ())
+    if (edgeToGridType () != GridUnknown && optionGetDrawIndicator ())
 	cRect = desiredSlot;
     else
 	cRect.setGeometry (0, 0, 0, 0);
@@ -159,7 +159,7 @@ GridScreen::initiateCommon (CompAction         *action,
 				 cw->serverWidth (),
 				 cw->serverHeight ());
 
-	if (desiredRect == currentRect)
+	if (desiredRect == currentRect && where != GridMaximize)
 	{
 	    int slotWidth33  = workarea.width () / 3;
 	    int slotWidth66  = workarea.width () - slotWidth33;
