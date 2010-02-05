@@ -331,8 +331,6 @@ GridScreen::edgeToGridType ()
 void
 GridScreen::handleEvent (XEvent *event)
 {
-    bool damage = false;
-
     screen->handleEvent (event);
 
     if (event->type != MotionNotify)
@@ -438,8 +436,7 @@ GridWindow::ungrabNotify ()
 GridScreen::GridScreen (CompScreen *screen) :
     PluginClassHandler<GridScreen, CompScreen> (screen),
     cScreen (CompositeScreen::get (screen)),
-    glScreen (GLScreen::get (screen)),
-    GridOptions ()
+    glScreen (GLScreen::get (screen))
 {
 
     ScreenInterface::setHandler (screen, false);
@@ -470,8 +467,8 @@ GridScreen::GridScreen (CompScreen *screen) :
 
 GridWindow::GridWindow (CompWindow *window) :
     PluginClassHandler <GridWindow, CompWindow> (window),
-    gScreen (GridScreen::get (screen)),
     window (window),
+    gScreen (GridScreen::get (screen)),
     grabIsMove (false)
 {
     WindowInterface::setHandler (window);
