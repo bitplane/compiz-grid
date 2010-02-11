@@ -30,6 +30,8 @@
 
 #include "grid_options.h"
 
+#define SNAPOFF_THRESHOLD 50
+
 typedef enum
 {
     GridUnknown = 0,
@@ -83,6 +85,7 @@ class GridScreen :
 	GridProps props;
 	Edges edge, lastEdge;
 	CompOption::Vector o;
+	bool isGridResized, alignPointerWithWindow;
 
 	void getPaintRectangle (CompRect&);
 
@@ -100,7 +103,9 @@ class GridScreen :
 
 	void handleEvent (XEvent *event);
 
-    private:
+	void
+	snapbackOptionChanged (CompOption *o,
+				Options    num);
 
 	CompRect
 	slotToRect (CompWindow      *w,
@@ -121,10 +126,14 @@ class GridWindow :
 	GridScreen *gScreen;
 
 	bool grabIsMove;
+	int pointerBufdx, pointerBufdy, grabbed_state, grabbed_mask;
+	CompRect originalSize;
 
 	void grabNotify (int, int, unsigned int, unsigned int);
 
 	void ungrabNotify ();
+
+	void moveNotify (int, int, bool);
 };
 
 class GridPluginVTable :

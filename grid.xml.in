@@ -486,6 +486,11 @@
 				<_long>Snapoff maximized windows when pulling to edge.</_long>
 				<default>false</default>
 			</option>
+			<option name="snapback_windows" type="bool">
+				<_short>Snap windows back to original size</_short>
+				<_long>Snaps windows back to their original size if dragged away from their gridded position.</_long>
+				<default>true</default>
+			</option>
 		</subgroup>
 		<subgroup>
 			<_short>Thresholds</_short>

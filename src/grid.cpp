@@ -133,6 +133,7 @@ GridScreen::initiateCommon (CompAction         *action,
 		cw->configureXWindow (CWX | CWY, &xwc);
 	    }
 	    cw->maximize (MAXIMIZE_STATE);
+	    isGridResized = true;
 	    return true;
 	}
 
@@ -223,7 +224,10 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	/* TODO: animate move+resize */
 	if (resize)
-	cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
+	{
+	    cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
+	    isGridResized = true;
+	}
     }
 
     return true;
@@ -413,7 +417,20 @@ GridWindow::grabNotify (int          x,
 	screen->handleEventSetEnabled (gScreen, true);
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, true);
 	grabIsMove = true;
+	pointerBufdx = pointerBufdy = 0;
+
+	if (!gScreen->isGridResized &&
+	    GridScreen::get (screen)->optionGetSnapbackWindows ())
+	{
+	    /* Store size not including borders */
+	    originalSize = gScreen->slotToRect(window,
+						window->serverInputRect ());
+	    grabbed_state = state;
+	    grabbed_mask = mask;
+	}
     }
+    if (screen->grabExist ("resize"))
+	gScreen->isGridResized = false;
 }
 
 void
@@ -432,11 +449,69 @@ GridWindow::ungrabNotify ()
     gScreen->edge = NoEdge;
 }
 
+void
+GridWindow::moveNotify (int dx, int dy, bool immediate)
+{
+    window->moveNotify (dx, dy, immediate);
+
+    XWindowChanges xwc;
+
+    pointerBufdx += dx;
+    pointerBufdy += dy;
+
+    int offsetX, offsetY;
+
+    if (gScreen->alignPointerWithWindow)
+    {
+	offsetX = window->serverOutputRect ().x1 () +
+		((window->serverOutputRect ().x2 () -
+		  window->serverOutputRect ().x1 ()) / 2);
+	offsetY = window->serverOutputRect ().y1 () +
+		 (window->input ().top / 2);
+
+	screen->warpPointer (offsetX - pointerX, offsetY - pointerY);
+	gScreen->alignPointerWithWindow = false;
+    }
+
+    if ((pointerBufdx > SNAPOFF_THRESHOLD ||
+	 pointerBufdy > SNAPOFF_THRESHOLD ||
+	 pointerBufdx < -SNAPOFF_THRESHOLD ||
+	 pointerBufdy < -SNAPOFF_THRESHOLD) && gScreen->isGridResized &&
+	 GridScreen::get (screen)->optionGetSnapbackWindows ())
+    {
+	xwc.x = originalSize.x ();
+	xwc.y = originalSize.y ();
+	xwc.width  = originalSize.width ();
+	xwc.height = originalSize.height ();
+	window->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
+	offsetX = window->serverOutputRect ().x1 () +
+		((window->serverOutputRect ().x2 () -
+		  window->serverOutputRect ().x1 ()) / 2);
+	offsetY = window->serverOutputRect ().y1 () +
+		 (window->input ().top / 2);
+
+	screen->warpPointer (offsetX - pointerX, offsetY - pointerY);
+	gScreen->alignPointerWithWindow = true;
+	gScreen->isGridResized = false;
+	pointerBufdx = pointerBufdy = 0;
+    }
+}
+
+void
+GridScreen::snapbackOptionChanged (CompOption *o,
+				    Options    num)
+{
+    isGridResized = false;
+    alignPointerWithWindow = false;
+}
+
 
 GridScreen::GridScreen (CompScreen *screen) :
     PluginClassHandler<GridScreen, CompScreen> (screen),
     cScreen (CompositeScreen::get (screen)),
-    glScreen (GLScreen::get (screen))
+    glScreen (GLScreen::get (screen)),
+    isGridResized (false),
+    alignPointerWithWindow (false)
 {
 
     ScreenInterface::setHandler (screen, false);
@@ -444,10 +519,11 @@ GridScreen::GridScreen (CompScreen *screen) :
     GLScreenInterface::setHandler (glScreen, false);
 
     edge = lastEdge = NoEdge;
-    currentWorkarea = lastWorkarea = screen->getWorkareaForOutput (screen->outputDeviceForPoint (pointerX, pointerY));
+    currentWorkarea = lastWorkarea = screen->getWorkareaForOutput
+			    (screen->outputDeviceForPoint (pointerX, pointerY));
 
-#define GRIDSET(opt,where,resize)			                             \
-    optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon,this, \
+#define GRIDSET(opt,where,resize)						\
+    optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon,this,	\
 					   _1, _2, _3, where, resize))
 
     GRIDSET (PutCenterKey, GridCenter, true);
@@ -463,12 +539,15 @@ GridScreen::GridScreen (CompScreen *screen) :
 
 #undef GRIDSET
 
+    optionSetSnapbackWindowsNotify (boost::bind (&GridScreen::
+				    snapbackOptionChanged, this, _1, _2));
+
 }
 
 GridWindow::GridWindow (CompWindow *window) :
     PluginClassHandler <GridWindow, CompWindow> (window),
-    window (window),
     gScreen (GridScreen::get (screen)),
+    window (window),
     grabIsMove (false)
 {
     WindowInterface::setHandler (window);
