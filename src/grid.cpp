@@ -546,8 +546,8 @@ GridScreen::GridScreen (CompScreen *screen) :
 
 GridWindow::GridWindow (CompWindow *window) :
     PluginClassHandler <GridWindow, CompWindow> (window),
-    gScreen (GridScreen::get (screen)),
     window (window),
+    gScreen (GridScreen::get (screen)),
     grabIsMove (false)
 {
     WindowInterface::setHandler (window);
