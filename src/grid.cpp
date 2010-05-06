@@ -417,7 +417,7 @@ GridWindow::grabNotify (int          x,
 	screen->handleEventSetEnabled (gScreen, true);
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, true);
 	grabIsMove = true;
-	pointerBufdx = pointerBufdy = 0;
+	pointerBufDx = pointerBufDy = 0;
 
 	if (!gScreen->isGridResized &&
 	    GridScreen::get (screen)->optionGetSnapbackWindows ())
@@ -456,8 +456,8 @@ GridWindow::moveNotify (int dx, int dy, bool immediate)
 
     XWindowChanges xwc;
 
-    pointerBufdx += dx;
-    pointerBufdy += dy;
+    pointerBufDx += dx;
+    pointerBufDy += dy;
 
     int offsetX, offsetY;
 
@@ -473,10 +473,10 @@ GridWindow::moveNotify (int dx, int dy, bool immediate)
 	gScreen->alignPointerWithWindow = false;
     }
 
-    if ((pointerBufdx > SNAPOFF_THRESHOLD ||
-	 pointerBufdy > SNAPOFF_THRESHOLD ||
-	 pointerBufdx < -SNAPOFF_THRESHOLD ||
-	 pointerBufdy < -SNAPOFF_THRESHOLD) && gScreen->isGridResized &&
+    if ((pointerBufDx > SNAPOFF_THRESHOLD ||
+	 pointerBufDy > SNAPOFF_THRESHOLD ||
+	 pointerBufDx < -SNAPOFF_THRESHOLD ||
+	 pointerBufDy < -SNAPOFF_THRESHOLD) && gScreen->isGridResized &&
 	 GridScreen::get (screen)->optionGetSnapbackWindows ())
     {
 	xwc.x = originalSize.x ();
@@ -493,7 +493,7 @@ GridWindow::moveNotify (int dx, int dy, bool immediate)
 	screen->warpPointer (offsetX - pointerX, offsetY - pointerY);
 	gScreen->alignPointerWithWindow = true;
 	gScreen->isGridResized = false;
-	pointerBufdx = pointerBufdy = 0;
+	pointerBufDx = pointerBufDy = 0;
     }
 }
 
@@ -548,7 +548,9 @@ GridWindow::GridWindow (CompWindow *window) :
     PluginClassHandler <GridWindow, CompWindow> (window),
     window (window),
     gScreen (GridScreen::get (screen)),
-    grabIsMove (false)
+    grabIsMove (false),
+    pointerBufDx (0),
+    pointerBufDy (0)
 {
     WindowInterface::setHandler (window);
 }
