@@ -9,6 +9,9 @@
 		<plugin>composite</plugin>
 		<plugin>opengl</plugin>
 	    </requirement>
+	    <relation type="before">
+		<plugin>wobbly</plugin>
+	    </relation>
 	    <relation type="after">
 		<plugin>composite</plugin>
 		<plugin>opengl</plugin>
