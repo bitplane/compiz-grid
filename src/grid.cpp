@@ -335,6 +335,9 @@ GridScreen::edgeToGridType ()
 void
 GridScreen::handleEvent (XEvent *event)
 {
+    XWindowChanges xwc;
+    CompWindow *cw = screen->findWindow (CompOption::getIntOptionNamed (o, "window"));
+
     screen->handleEvent (event);
 
     if (event->type != MotionNotify)
@@ -401,6 +404,21 @@ GridScreen::handleEvent (XEvent *event)
 	if (cScreen)
 	    cScreen->damageRegion (desiredSlot);
     }
+
+    if ((GridWindow::get (cw)->pointerBufDx > SNAPOFF_THRESHOLD ||
+		GridWindow::get (cw)->pointerBufDy > SNAPOFF_THRESHOLD ||
+		GridWindow::get (cw)->pointerBufDx < -SNAPOFF_THRESHOLD ||
+		GridWindow::get (cw)->pointerBufDy < -SNAPOFF_THRESHOLD) && isGridResized &&
+		optionGetSnapbackWindows ())
+	{
+		xwc.x = pointerX - (GridWindow::get (cw)->originalSize.width () >> 1);
+		xwc.y = pointerY - (cw->input ().top >> 1);
+		xwc.width  = GridWindow::get (cw)->originalSize.width ();
+		xwc.height = GridWindow::get (cw)->originalSize.height ();
+		cw->maximize (0);
+		cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
+		GridWindow::get (cw)->pointerBufDx = GridWindow::get (cw)->pointerBufDy = 0;
+	}
 }
 
 void
@@ -452,47 +470,8 @@ GridWindow::moveNotify (int dx, int dy, bool immediate)
 {
     window->moveNotify (dx, dy, immediate);
 
-    XWindowChanges xwc;
-
     pointerBufDx += dx;
     pointerBufDy += dy;
-
-    int offsetX, offsetY;
-
-    if (gScreen->alignPointerWithWindow)
-    {
-	offsetX = window->serverOutputRect ().x1 () +
-		((window->serverOutputRect ().x2 () -
-		  window->serverOutputRect ().x1 ()) / 2);
-	offsetY = window->serverOutputRect ().y1 () +
-		 (window->input ().top / 2);
-
-	screen->warpPointer (offsetX - pointerX, offsetY - pointerY);
-	gScreen->alignPointerWithWindow = false;
-    }
-
-    if ((pointerBufDx > SNAPOFF_THRESHOLD ||
-	 pointerBufDy > SNAPOFF_THRESHOLD ||
-	 pointerBufDx < -SNAPOFF_THRESHOLD ||
-	 pointerBufDy < -SNAPOFF_THRESHOLD) && gScreen->isGridResized &&
-	 GridScreen::get (screen)->optionGetSnapbackWindows ())
-    {
-	xwc.x = originalSize.x ();
-	xwc.y = originalSize.y ();
-	xwc.width  = originalSize.width ();
-	xwc.height = originalSize.height ();
-	window->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
-	offsetX = window->serverOutputRect ().x1 () +
-		((window->serverOutputRect ().x2 () -
-		  window->serverOutputRect ().x1 ()) / 2);
-	offsetY = window->serverOutputRect ().y1 () +
-		 (window->input ().top / 2);
-
-	screen->warpPointer (offsetX - pointerX, offsetY - pointerY);
-	gScreen->alignPointerWithWindow = true;
-	gScreen->isGridResized = false;
-	pointerBufDx = pointerBufDy = 0;
-    }
 }
 
 void
