@@ -417,10 +417,7 @@ GridScreen::handleEvent (XEvent *event)
 		optionGetSnapbackWindows ())
 	{
 		if (isGridMaximized & !(cw->state () & MAXIMIZE_STATE))
-		{
-			isGridResized = false;
 			isGridMaximized = false;
-		}
 		else
 		{
 			xwc.x = pointerX - (GridWindow::get (cw)->originalSize.width () >> 1);
@@ -432,6 +429,7 @@ GridScreen::handleEvent (XEvent *event)
 			GridWindow::get (cw)->pointerBufDx = 0;
 			GridWindow::get (cw)->pointerBufDy = 0;
 		}
+		isGridResized = false;
 	}
 }
 
