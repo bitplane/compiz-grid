@@ -126,7 +126,7 @@ class GridWindow :
 	GridScreen *gScreen;
 
 	bool grabIsMove;
-	int pointerBufDx, pointerBufDy, grabbed_state, grabbed_mask;
+	int pointerBufDx, pointerBufDy;
 	CompRect originalSize;
 
 	void grabNotify (int, int, unsigned int, unsigned int);

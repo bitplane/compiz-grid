@@ -425,8 +425,6 @@ GridWindow::grabNotify (int          x,
 	    /* Store size not including borders */
 	    originalSize = gScreen->slotToRect(window,
 						window->serverInputRect ());
-	    grabbed_state = state;
-	    grabbed_mask = mask;
 	}
     }
     if (screen->grabExist ("resize"))
