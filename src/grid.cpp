@@ -424,7 +424,7 @@ GridScreen::handleEvent (XEvent *event)
 		else
 		{
 			xwc.x = pointerX - (GridWindow::get (cw)->originalSize.width () >> 1);
-			xwc.y = pointerY - (cw->input ().top >> 1);
+			xwc.y = pointerY + (cw->input ().top >> 1);
 			xwc.width  = GridWindow::get (cw)->originalSize.width ();
 			xwc.height = GridWindow::get (cw)->originalSize.height ();
 			cw->maximize (0);
