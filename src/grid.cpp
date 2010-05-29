@@ -134,6 +134,7 @@ GridScreen::initiateCommon (CompAction         *action,
 	    }
 	    cw->maximize (MAXIMIZE_STATE);
 	    isGridResized = true;
+	    isGridMaximized = true;
 	    return true;
 	}
 
@@ -227,6 +228,7 @@ GridScreen::initiateCommon (CompAction         *action,
 	{
 	    cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
 	    isGridResized = true;
+	    isGridMaximized = false;
 	}
     }
 
@@ -411,13 +413,21 @@ GridScreen::handleEvent (XEvent *event)
 		GridWindow::get (cw)->pointerBufDy < -SNAPOFF_THRESHOLD) && isGridResized &&
 		optionGetSnapbackWindows ())
 	{
-		xwc.x = pointerX - (GridWindow::get (cw)->originalSize.width () >> 1);
-		xwc.y = pointerY - (cw->input ().top >> 1);
-		xwc.width  = GridWindow::get (cw)->originalSize.width ();
-		xwc.height = GridWindow::get (cw)->originalSize.height ();
-		cw->maximize (0);
-		cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
-		GridWindow::get (cw)->pointerBufDx = GridWindow::get (cw)->pointerBufDy = 0;
+		if (isGridMaximized & !(cw->state () & MAXIMIZE_STATE))
+		{
+			isGridResized = false;
+			isGridMaximized = false;
+		}
+		else
+		{
+			xwc.x = pointerX - (GridWindow::get (cw)->originalSize.width () >> 1);
+			xwc.y = pointerY - (cw->input ().top >> 1);
+			xwc.width  = GridWindow::get (cw)->originalSize.width ();
+			xwc.height = GridWindow::get (cw)->originalSize.height ();
+			cw->maximize (0);
+			cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
+			GridWindow::get (cw)->pointerBufDx = GridWindow::get (cw)->pointerBufDy = 0;
+		}
 	}
 }
 
@@ -479,6 +489,7 @@ GridScreen::snapbackOptionChanged (CompOption *o,
 				    Options    num)
 {
     isGridResized = false;
+    isGridMaximized = false;
     alignPointerWithWindow = false;
 }
 
@@ -488,6 +499,7 @@ GridScreen::GridScreen (CompScreen *screen) :
     cScreen (CompositeScreen::get (screen)),
     glScreen (GLScreen::get (screen)),
     isGridResized (false),
+    isGridMaximized (false),
     alignPointerWithWindow (false)
 {
 
