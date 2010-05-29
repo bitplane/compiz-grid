@@ -111,7 +111,8 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	/* get current available area */
 	if (GridWindow::get (cw)->grabIsMove)
-	    workarea = screen->getWorkareaForOutput (screen->outputDeviceForPoint (pointerX, pointerY));
+	    workarea = screen->getWorkareaForOutput
+						(screen->outputDeviceForPoint (pointerX, pointerY));
 	else
 	    workarea = screen->getWorkareaForOutput (cw->outputDevice ());
 
@@ -338,7 +339,8 @@ void
 GridScreen::handleEvent (XEvent *event)
 {
     XWindowChanges xwc;
-    CompWindow *cw = screen->findWindow (CompOption::getIntOptionNamed (o, "window"));
+    CompWindow *cw = screen->findWindow
+						(CompOption::getIntOptionNamed (o, "window"));
 
     screen->handleEvent (event);
 
@@ -379,7 +381,8 @@ GridScreen::handleEvent (XEvent *event)
 	edge = NoEdge;
 
     /* Detect when cursor enters another output */
-    currentWorkarea = screen->getWorkareaForOutput (screen->outputDeviceForPoint (pointerX, pointerY));
+    currentWorkarea = screen->getWorkareaForOutput
+						(screen->outputDeviceForPoint (pointerX, pointerY));
     if (lastWorkarea != currentWorkarea)
     {
 	lastWorkarea = currentWorkarea;
@@ -426,7 +429,8 @@ GridScreen::handleEvent (XEvent *event)
 			xwc.height = GridWindow::get (cw)->originalSize.height ();
 			cw->maximize (0);
 			cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
-			GridWindow::get (cw)->pointerBufDx = GridWindow::get (cw)->pointerBufDy = 0;
+			GridWindow::get (cw)->pointerBufDx = 0;
+			GridWindow::get (cw)->pointerBufDy = 0;
 		}
 	}
 }
