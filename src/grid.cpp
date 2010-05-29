@@ -126,8 +126,8 @@ GridScreen::initiateCommon (CompAction         *action,
 	    /* move the window to the correct output */
 	    if (GridWindow::get (cw)->grabIsMove)
 	    {
-		xwc.x = workarea.x ();
-		xwc.y = workarea.y ();
+		xwc.x = workarea.x () + 50;
+		xwc.y = workarea.y () + 50;
 		xwc.width = workarea.width ();
 		xwc.height = workarea.height ();
 		cw->configureXWindow (CWX | CWY, &xwc);
