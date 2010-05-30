@@ -169,8 +169,10 @@ GridScreen::initiateCommon (CompAction         *action,
 	    desiredRect.height () == currentRect.height () &&
 	    where != GridMaximize)
 	{
+	    int slotWidth25  = workarea.width () / 4;
 	    int slotWidth33  = workarea.width () / 3;
 	    int slotWidth66  = workarea.width () - slotWidth33;
+	    int slotWidth17  = slotWidth33 - slotWidth25;
 
 	    if (props.numCellsX == 2) /* keys (1, 4, 7, 3, 6, 9) */
 	    {
@@ -211,11 +213,26 @@ GridScreen::initiateCommon (CompAction         *action,
 	    }
 	    else /* keys (2, 5, 8) */
 	    {
+		CompRect tmp;
+
+		tmp.setWidth (slotWidth33);
+		tmp.setX (workarea.x () + slotWidth33);
+		tmp = constrainSize (cw, tmp);
+
 		if (currentRect.width () == desiredRect.width () &&
 		    currentRect.x () == desiredRect.x ())
 		{
 		    desiredSlot.setWidth (slotWidth33);
 		    desiredSlot.setX (workarea.x () + slotWidth33);
+		}
+		else
+		if (currentRect.width () == tmp.width () &&
+		    currentRect.x () == tmp.x ())
+		{
+		    desiredSlot.setWidth ((slotWidth25 * 2) +
+					  (slotWidth17 * 2));
+		    desiredSlot.setX (workarea.x () +
+				     (slotWidth25 - slotWidth17));
 		}
 	    }
 	    desiredRect = constrainSize (cw, desiredSlot);
