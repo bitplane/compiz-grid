@@ -162,7 +162,9 @@ GridScreen::initiateCommon (CompAction         *action,
 				 cw->serverWidth (),
 				 cw->serverHeight ());
 
-	if (desiredRect == currentRect && where != GridMaximize)
+	if (desiredRect.y () == currentRect.y () &&
+		desiredRect.height () == currentRect.height () &&
+		where != GridMaximize)
 	{
 	    int slotWidth33  = workarea.width () / 3;
 	    int slotWidth66  = workarea.width () - slotWidth33;
