@@ -112,11 +112,12 @@ GridScreen::initiateCommon (CompAction         *action,
 	/* get current available area */
 	if (GridWindow::get (cw)->grabIsMove)
 	    workarea = screen->getWorkareaForOutput
-						(screen->outputDeviceForPoint (pointerX, pointerY));
+			    (screen->outputDeviceForPoint (pointerX, pointerY));
 	else
 	    workarea = screen->getWorkareaForOutput (cw->outputDevice ());
 
-	if ((cw->state () & MAXIMIZE_STATE) && (resize || optionGetSnapoffMaximized ()))
+	if ((cw->state () & MAXIMIZE_STATE) &&
+	    (resize || optionGetSnapoffMaximized ()))
 	{
 	    /* maximized state interferes with us, clear it */
 	    cw->maximize (0);
@@ -163,8 +164,8 @@ GridScreen::initiateCommon (CompAction         *action,
 				 cw->serverHeight ());
 
 	if (desiredRect.y () == currentRect.y () &&
-		desiredRect.height () == currentRect.height () &&
-		where != GridMaximize)
+	    desiredRect.height () == currentRect.height () &&
+	    where != GridMaximize)
 	{
 	    int slotWidth33  = workarea.width () / 3;
 	    int slotWidth66  = workarea.width () - slotWidth33;
@@ -342,7 +343,7 @@ GridScreen::handleEvent (XEvent *event)
 {
     XWindowChanges xwc;
     CompWindow *cw = screen->findWindow
-						(CompOption::getIntOptionNamed (o, "window"));
+				(CompOption::getIntOptionNamed (o, "window"));
 
     screen->handleEvent (event);
 
@@ -384,7 +385,7 @@ GridScreen::handleEvent (XEvent *event)
 
     /* Detect when cursor enters another output */
     currentWorkarea = screen->getWorkareaForOutput
-						(screen->outputDeviceForPoint (pointerX, pointerY));
+			    (screen->outputDeviceForPoint (pointerX, pointerY));
     if (lastWorkarea != currentWorkarea)
     {
 	lastWorkarea = currentWorkarea;
@@ -413,26 +414,27 @@ GridScreen::handleEvent (XEvent *event)
     }
 
     if ((GridWindow::get (cw)->pointerBufDx > SNAPOFF_THRESHOLD ||
-		GridWindow::get (cw)->pointerBufDy > SNAPOFF_THRESHOLD ||
-		GridWindow::get (cw)->pointerBufDx < -SNAPOFF_THRESHOLD ||
-		GridWindow::get (cw)->pointerBufDy < -SNAPOFF_THRESHOLD) && isGridResized &&
-		optionGetSnapbackWindows ())
+	 GridWindow::get (cw)->pointerBufDy > SNAPOFF_THRESHOLD ||
+	 GridWindow::get (cw)->pointerBufDx < -SNAPOFF_THRESHOLD ||
+	 GridWindow::get (cw)->pointerBufDy < -SNAPOFF_THRESHOLD) &&
+	 isGridResized &&
+	 optionGetSnapbackWindows ())
+    {
+	if (isGridMaximized & !(cw->state () & MAXIMIZE_STATE))
+		isGridMaximized = false;
+	else
 	{
-		if (isGridMaximized & !(cw->state () & MAXIMIZE_STATE))
-			isGridMaximized = false;
-		else
-		{
-			xwc.x = pointerX - (GridWindow::get (cw)->originalSize.width () >> 1);
-			xwc.y = pointerY + (cw->input ().top >> 1);
-			xwc.width  = GridWindow::get (cw)->originalSize.width ();
-			xwc.height = GridWindow::get (cw)->originalSize.height ();
-			cw->maximize (0);
-			cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
-			GridWindow::get (cw)->pointerBufDx = 0;
-			GridWindow::get (cw)->pointerBufDy = 0;
-		}
-		isGridResized = false;
+	    xwc.x = pointerX - (GridWindow::get (cw)->originalSize.width () >> 1);
+	    xwc.y = pointerY + (cw->input ().top >> 1);
+	    xwc.width  = GridWindow::get (cw)->originalSize.width ();
+	    xwc.height = GridWindow::get (cw)->originalSize.height ();
+	    cw->maximize (0);
+	    cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
+	    GridWindow::get (cw)->pointerBufDx = 0;
+	    GridWindow::get (cw)->pointerBufDy = 0;
 	}
+	isGridResized = false;
+    }
 }
 
 void
@@ -468,7 +470,8 @@ GridWindow::ungrabNotify ()
 {
     if (grabIsMove)
     {
-	gScreen->initiateCommon (0, 0, gScreen->o, gScreen->edgeToGridType (), true);
+	gScreen->initiateCommon
+			(0, 0, gScreen->o, gScreen->edgeToGridType (), true);
 
 	screen->handleEventSetEnabled (gScreen, false);
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, false);
