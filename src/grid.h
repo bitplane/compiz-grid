@@ -136,6 +136,9 @@ class GridWindow :
 	void moveNotify (int, int, bool);
 };
 
+#define GRID_WINDOW(w) \
+    GridWindow *gw = GridWindow::get (w)
+
 class GridPluginVTable :
     public CompPlugin::VTableForScreenAndWindow <GridScreen, GridWindow>
 {
