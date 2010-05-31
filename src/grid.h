@@ -85,7 +85,7 @@ class GridScreen :
 	GridProps props;
 	Edges edge, lastEdge;
 	CompOption::Vector o;
-	bool isGridResized, isGridMaximized, alignPointerWithWindow;
+	bool isGridResized, isGridMaximized;
 	int resizeCount;
 
 	void getPaintRectangle (CompRect&);

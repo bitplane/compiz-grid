@@ -573,7 +573,6 @@ GridScreen::snapbackOptionChanged (CompOption *o,
 {
     isGridResized = false;
     isGridMaximized = false;
-    alignPointerWithWindow = false;
 }
 
 
@@ -583,8 +582,7 @@ GridScreen::GridScreen (CompScreen *screen) :
     glScreen (GLScreen::get (screen)),
     isGridResized (false),
     isGridMaximized (false),
-    resizeCount (0),
-    alignPointerWithWindow (false)
+    resizeCount (0)
 {
 
     ScreenInterface::setHandler (screen, false);
