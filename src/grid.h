@@ -81,11 +81,11 @@ class GridScreen :
 	CompositeScreen *cScreen;
 	GLScreen        *glScreen;
 
-	CompRect workarea, currentRect, desiredSlot, desiredRect, lastWorkarea, currentWorkarea;
+	CompRect workarea, currentRect, desiredSlot,
+		 desiredRect, lastWorkarea, currentWorkarea;
 	GridProps props;
 	Edges edge, lastEdge;
 	CompOption::Vector o;
-	bool isGridResized, isGridMaximized;
 	int resizeCount;
 
 	void getPaintRectangle (CompRect&);
@@ -105,7 +105,7 @@ class GridScreen :
 	void handleEvent (XEvent *event);
 
 	void
-	snapbackOptionChanged (CompOption *o,
+	snapbackOptionChanged (CompOption *option,
 				Options    num);
 
 	CompRect
@@ -126,7 +126,7 @@ class GridWindow :
 	CompWindow *window;
 	GridScreen *gScreen;
 
-	bool grabIsMove;
+	bool grabIsMove, isGridResized, isGridMaximized;
 	int pointerBufDx, pointerBufDy;
 	CompRect originalSize;
 

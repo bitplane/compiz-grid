@@ -111,8 +111,9 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	GRID_WINDOW (cw);
 
-	/* Store size not including borders */
-	if (!isGridResized)
+
+	if (!gw->isGridResized && optionGetSnapbackWindows ())
+	    /* Store size not including borders */
 	    gw->originalSize = slotToRect(cw, cw->serverInputRect ());
 
 	/* get current available area */
@@ -141,8 +142,8 @@ GridScreen::initiateCommon (CompAction         *action,
 		cw->configureXWindow (CWX | CWY, &xwc);
 	    }
 	    cw->maximize (MAXIMIZE_STATE);
-	    isGridResized = true;
-	    isGridMaximized = true;
+	    gw->isGridResized = true;
+	    gw->isGridMaximized = true;
 	    return true;
 	}
 
@@ -305,8 +306,8 @@ GridScreen::initiateCommon (CompAction         *action,
 	if (resize)
 	{
 	    cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
-	    isGridResized = true;
-	    isGridMaximized = false;
+	    gw->isGridResized = true;
+	    gw->isGridMaximized = false;
 	}
     }
 
@@ -493,11 +494,11 @@ GridScreen::handleEvent (XEvent *event)
 	 gw->pointerBufDy > SNAPOFF_THRESHOLD ||
 	 gw->pointerBufDx < -SNAPOFF_THRESHOLD ||
 	 gw->pointerBufDy < -SNAPOFF_THRESHOLD) &&
-	 isGridResized &&
+	 gw->isGridResized &&
 	 optionGetSnapbackWindows ())
     {
-	if (isGridMaximized & !(cw->state () & MAXIMIZE_STATE))
-		isGridMaximized = false;
+	if (gw->isGridMaximized & !(cw->state () & MAXIMIZE_STATE))
+		gw->isGridMaximized = false;
 	else
 	{
 	    xwc.x = pointerX - (gw->originalSize.width () >> 1);
@@ -509,7 +510,7 @@ GridScreen::handleEvent (XEvent *event)
 	    gw->pointerBufDx = 0;
 	    gw->pointerBufDy = 0;
 	}
-	isGridResized = false;
+	gw->isGridResized = false;
     }
 }
 
@@ -528,17 +529,9 @@ GridWindow::grabNotify (int          x,
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, true);
 	grabIsMove = true;
 	pointerBufDx = pointerBufDy = 0;
-
-	if (!gScreen->isGridResized &&
-	    GridScreen::get (screen)->optionGetSnapbackWindows ())
-	{
-	    /* Store size not including borders */
-	    originalSize = gScreen->slotToRect(window,
-						window->serverInputRect ());
-	}
     }
     if (screen->grabExist ("resize"))
-	gScreen->isGridResized = false;
+	isGridResized = false;
 }
 
 void
@@ -568,11 +561,13 @@ GridWindow::moveNotify (int dx, int dy, bool immediate)
 }
 
 void
-GridScreen::snapbackOptionChanged (CompOption *o,
+GridScreen::snapbackOptionChanged (CompOption *option,
 				    Options    num)
 {
-    isGridResized = false;
-    isGridMaximized = false;
+    GRID_WINDOW (screen->findWindow
+		    (CompOption::getIntOptionNamed (o, "window")));
+    gw->isGridResized = false;
+    gw->isGridMaximized = false;
 }
 
 
@@ -580,8 +575,6 @@ GridScreen::GridScreen (CompScreen *screen) :
     PluginClassHandler<GridScreen, CompScreen> (screen),
     cScreen (CompositeScreen::get (screen)),
     glScreen (GLScreen::get (screen)),
-    isGridResized (false),
-    isGridMaximized (false),
     resizeCount (0)
 {
 
@@ -620,6 +613,8 @@ GridWindow::GridWindow (CompWindow *window) :
     window (window),
     gScreen (GridScreen::get (screen)),
     grabIsMove (false),
+    isGridResized (false),
+    isGridMaximized (false),
     pointerBufDx (0),
     pointerBufDy (0)
 {
