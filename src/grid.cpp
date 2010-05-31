@@ -111,6 +111,10 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	GRID_WINDOW (cw);
 
+	/* Store size not including borders */
+	if (!isGridResized)
+	    gw->originalSize = slotToRect(cw, cw->serverInputRect ());
+
 	/* get current available area */
 	if (gw->grabIsMove)
 	    workarea = screen->getWorkareaForOutput
