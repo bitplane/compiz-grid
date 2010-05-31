@@ -171,8 +171,36 @@ GridScreen::initiateCommon (CompAction         *action,
 	{
 	    int slotWidth25  = workarea.width () / 4;
 	    int slotWidth33  = workarea.width () / 3;
-	    int slotWidth66  = workarea.width () - slotWidth33;
 	    int slotWidth17  = slotWidth33 - slotWidth25;
+	    int slotWidth66  = workarea.width () - slotWidth33;
+	    int slotWidth75  = workarea.width () - slotWidth25;
+	    
+	    CompRect rect25, rect33, rect66, rect75,
+		     slot25, slot33, slot66, slot75;
+
+	    slot25 = desiredSlot;
+	    slot25.setX (workarea.x () +
+			 props.gravityRight * slotWidth75);
+	    slot25.setWidth (slotWidth25);
+	    rect25 = constrainSize (cw, slot25);
+
+	    slot33 = desiredSlot;
+	    slot33.setX (workarea.x () +
+			 props.gravityRight * slotWidth66);
+	    slot33.setWidth (slotWidth33);
+	    rect33 = constrainSize (cw, slot33);
+
+	    slot66 = desiredSlot;
+	    slot66.setX (workarea.x () +
+			 props.gravityRight * slotWidth33);
+	    slot66.setWidth (slotWidth66);
+	    rect66 = constrainSize (cw, slot66);
+
+	    slot75 = desiredSlot;
+	    slot75.setX (workarea.x () +
+			 props.gravityRight * slotWidth25);
+	    slot75.setWidth (slotWidth75);
+	    rect75 = constrainSize (cw, slot75);
 
 	    if (props.numCellsX == 2) /* keys (1, 4, 7, 3, 6, 9) */
 	    {
@@ -188,26 +216,27 @@ GridScreen::initiateCommon (CompAction         *action,
 		    /* tricky, have to allow for window constraints when
 		     * computing what the 33% and 66% offsets would be
 		     */
-		    CompRect rect33, rect66, slot33, slot66;
 
-		    slot33 = desiredSlot;
-		    slot33.setX (workarea.x () +
-				 props.gravityRight * slotWidth66);
-		    slot33.setWidth (slotWidth33);
-		    rect33 = constrainSize (cw, slot33);
-
-		    slot66 = desiredSlot;
-		    slot66.setX (workarea.x () +
-				 props.gravityRight * slotWidth33);
-		    slot66.setWidth (slotWidth66);
-		    rect66 = constrainSize (cw, slot66);
-
-		    if (currentRect.width () == rect66.width () &&
-			currentRect.x () == rect66.x ())
+		    if (currentRect.width () == rect25.width () &&
+			currentRect.x () == rect25.x ())
 		    {
 			desiredSlot.setWidth (slotWidth33);
 			desiredSlot.setX (workarea.x () +
 					  props.gravityRight * slotWidth66);
+		    }
+		    if (currentRect.width () == rect66.width () &&
+			currentRect.x () == rect66.x ())
+		    {
+			desiredSlot.setWidth (slotWidth75);
+			desiredSlot.setX (workarea.x () +
+					  props.gravityRight * slotWidth25);
+		    }
+		    if (currentRect.width () == rect75.width () &&
+			currentRect.x () == rect75.x ())
+		    {
+			desiredSlot.setWidth (slotWidth25);
+			desiredSlot.setX (workarea.x () +
+					  props.gravityRight * slotWidth75);
 		    }
 		}
 	    }
@@ -215,17 +244,28 @@ GridScreen::initiateCommon (CompAction         *action,
 	    {
 		CompRect tmp;
 
-		tmp.setWidth (slotWidth33);
-		tmp.setX (workarea.x () + slotWidth33);
-		tmp = constrainSize (cw, tmp);
-
 		if (currentRect.width () == desiredRect.width () &&
 		    currentRect.x () == desiredRect.x ())
 		{
 		    desiredSlot.setWidth (slotWidth33);
 		    desiredSlot.setX (workarea.x () + slotWidth33);
 		}
-		else
+
+		tmp.setWidth (slotWidth33);
+		tmp.setX (workarea.x () + slotWidth33);
+		tmp = constrainSize (cw, tmp);
+
+		if (currentRect.width () == tmp.width () &&
+		    currentRect.x () == tmp.x ())
+		{
+		    desiredSlot.setWidth ((slotWidth25 * 2));
+		    desiredSlot.setX (workarea.x () + slotWidth25);
+		}
+
+		tmp.setWidth (slotWidth25 * 2);
+		tmp.setX (workarea.x () + slotWidth25);
+		tmp = constrainSize (cw, tmp);
+
 		if (currentRect.width () == tmp.width () &&
 		    currentRect.x () == tmp.x ())
 		{
@@ -233,6 +273,18 @@ GridScreen::initiateCommon (CompAction         *action,
 					  (slotWidth17 * 2));
 		    desiredSlot.setX (workarea.x () +
 				     (slotWidth25 - slotWidth17));
+		}
+
+		tmp.setWidth ((slotWidth25 * 2) + (slotWidth17 * 2));
+		tmp.setX (workarea.x () + (slotWidth25 - slotWidth17));
+		tmp = constrainSize (cw, tmp);
+
+		if (currentRect.width () == tmp.width () &&
+		    currentRect.x () == tmp.x ())
+		{
+		    desiredSlot.setWidth (workarea.width () -
+					 (slotWidth17 * 2));
+		    desiredSlot.setX (workarea.x () + slotWidth17);
 		}
 	    }
 	    desiredRect = constrainSize (cw, desiredSlot);
