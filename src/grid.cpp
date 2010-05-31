@@ -210,86 +210,84 @@ GridScreen::initiateCommon (CompAction         *action,
 	    {
 		if (currentRect.width () == desiredRect.width () &&
 		    currentRect.x () == desiredRect.x ())
-		{
-		    desiredSlot.setWidth (slotWidth66);
-		    desiredSlot.setX (workarea.x () +
-				      props.gravityRight * slotWidth33);
-		}
-		else
-		{
-		    /* tricky, have to allow for window constraints when
-		     * computing what the 33% and 66% offsets would be
-		     */
+		    resizeCount = 3;
 
-		    if (currentRect.width () == rect25.width () &&
-			currentRect.x () == rect25.x ())
-		    {
+		/* tricky, have to allow for window constraints when
+		 * computing what the 33% and 66% offsets would be
+		 */
+		switch (resizeCount)
+		{
+		    case 1:
 			desiredSlot.setWidth (slotWidth33);
 			desiredSlot.setX (workarea.x () +
 					  props.gravityRight * slotWidth66);
-		    }
-		    if (currentRect.width () == rect66.width () &&
-			currentRect.x () == rect66.x ())
-		    {
+			resizeCount++;
+			break;
+		    // We don't have to handle case 2
+		    // because this is already the default
+		    case 3:
+			desiredSlot.setWidth (slotWidth66);
+			desiredSlot.setX (workarea.x () +
+					  props.gravityRight * slotWidth33);
+			resizeCount++;
+			break;
+		    case 4:
 			desiredSlot.setWidth (slotWidth75);
 			desiredSlot.setX (workarea.x () +
 					  props.gravityRight * slotWidth25);
-		    }
-		    if (currentRect.width () == rect75.width () &&
-			currentRect.x () == rect75.x ())
-		    {
+			resizeCount++;
+			break;
+		    case 5:
 			desiredSlot.setWidth (slotWidth25);
 			desiredSlot.setX (workarea.x () +
 					  props.gravityRight * slotWidth75);
-		    }
+			resizeCount++;
+			break;
+		    default:
+			break;
 		}
+		if (resizeCount == 6)
+		    resizeCount = 1;
 	    }
 	    else /* keys (2, 5, 8) */
 	    {
-		CompRect tmp;
 
 		if (currentRect.width () == desiredRect.width () &&
 		    currentRect.x () == desiredRect.x ())
+		    resizeCount = 1;
+		    
+		switch (resizeCount)
 		{
-		    desiredSlot.setWidth (slotWidth33);
-		    desiredSlot.setX (workarea.x () + slotWidth33);
+		    case 1:
+			desiredSlot.setWidth (slotWidth33);
+			desiredSlot.setX (workarea.x () + slotWidth33);
+			resizeCount++;
+			break;
+		    case 2:
+			desiredSlot.setWidth ((slotWidth25 * 2));
+			desiredSlot.setX (workarea.x () + slotWidth25);
+			resizeCount++;
+			break;
+		    case 3:
+			desiredSlot.setWidth ((slotWidth25 * 2) +
+					      (slotWidth17 * 2));
+			desiredSlot.setX (workarea.x () +
+					 (slotWidth25 - slotWidth17));
+			resizeCount++;
+			break;
+		    case 4:
+			desiredSlot.setWidth (workarea.width () -
+					     (slotWidth17 * 2));
+			desiredSlot.setX (workarea.x () + slotWidth17);
+			resizeCount++;
+			break;
+		    // We don't have to handle case 5
+		    // because this is already the default
+		    default:
+			break;
 		}
-
-		tmp.setWidth (slotWidth33);
-		tmp.setX (workarea.x () + slotWidth33);
-		tmp = constrainSize (cw, tmp);
-
-		if (currentRect.width () == tmp.width () &&
-		    currentRect.x () == tmp.x ())
-		{
-		    desiredSlot.setWidth ((slotWidth25 * 2));
-		    desiredSlot.setX (workarea.x () + slotWidth25);
-		}
-
-		tmp.setWidth (slotWidth25 * 2);
-		tmp.setX (workarea.x () + slotWidth25);
-		tmp = constrainSize (cw, tmp);
-
-		if (currentRect.width () == tmp.width () &&
-		    currentRect.x () == tmp.x ())
-		{
-		    desiredSlot.setWidth ((slotWidth25 * 2) +
-					  (slotWidth17 * 2));
-		    desiredSlot.setX (workarea.x () +
-				     (slotWidth25 - slotWidth17));
-		}
-
-		tmp.setWidth ((slotWidth25 * 2) + (slotWidth17 * 2));
-		tmp.setX (workarea.x () + (slotWidth25 - slotWidth17));
-		tmp = constrainSize (cw, tmp);
-
-		if (currentRect.width () == tmp.width () &&
-		    currentRect.x () == tmp.x ())
-		{
-		    desiredSlot.setWidth (workarea.width () -
-					 (slotWidth17 * 2));
-		    desiredSlot.setX (workarea.x () + slotWidth17);
-		}
+		if (resizeCount == 6)
+		    resizeCount = 1;
 	    }
 	    desiredRect = constrainSize (cw, desiredSlot);
 	}
@@ -584,6 +582,7 @@ GridScreen::GridScreen (CompScreen *screen) :
     glScreen (GLScreen::get (screen)),
     isGridResized (false),
     isGridMaximized (false),
+    resizeCount (0),
     alignPointerWithWindow (false)
 {
 

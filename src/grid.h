@@ -86,6 +86,7 @@ class GridScreen :
 	Edges edge, lastEdge;
 	CompOption::Vector o;
 	bool isGridResized, isGridMaximized, alignPointerWithWindow;
+	int resizeCount;
 
 	void getPaintRectangle (CompRect&);
 
