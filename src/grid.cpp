@@ -174,7 +174,7 @@ GridScreen::initiateCommon (CompAction         *action,
 	    where != GridMaximize)
 	{
 	    int slotWidth25  = workarea.width () / 4;
-	    int slotWidth33  = workarea.width () / 3;
+	    int slotWidth33  = (workarea.width () / 3) + cw->input ().left;
 	    int slotWidth17  = slotWidth33 - slotWidth25;
 	    int slotWidth66  = workarea.width () - slotWidth33;
 	    int slotWidth75  = workarea.width () - slotWidth25;
@@ -259,7 +259,8 @@ GridScreen::initiateCommon (CompAction         *action,
 		switch (resizeCount)
 		{
 		    case 1:
-			desiredSlot.setWidth (slotWidth33);
+			desiredSlot.setWidth (slotWidth33 -
+			    (cw->input ().left + cw->input ().right));
 			desiredSlot.setX (workarea.x () + slotWidth33);
 			resizeCount++;
 			break;
