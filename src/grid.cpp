@@ -529,6 +529,11 @@ GridWindow::grabNotify (int          x,
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, true);
 	grabIsMove = true;
 	pointerBufDx = pointerBufDy = 0;
+
+	if (!isGridResized && gScreen->optionGetSnapbackWindows ())
+	    /* Store size not including borders */
+	    originalSize = gScreen->slotToRect(window,
+						    window->serverInputRect ());
     }
     if (screen->grabExist ("resize"))
 	isGridResized = false;
