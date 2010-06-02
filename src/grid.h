@@ -87,6 +87,7 @@ class GridScreen :
 	Edges edge, lastEdge;
 	CompOption::Vector o;
 	int resizeCount;
+	bool centerCheck;
 
 	void getPaintRectangle (CompRect&);
 

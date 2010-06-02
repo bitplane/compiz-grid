@@ -288,6 +288,8 @@ GridScreen::initiateCommon (CompAction         *action,
 		    default:
 			break;
 		}
+
+		centerCheck = true;
 	    }
 
 	    if (resizeCount == 6)
@@ -301,6 +303,9 @@ GridScreen::initiateCommon (CompAction         *action,
 	xwc.width  = desiredRect.width ();
 	xwc.height = desiredRect.height ();
 
+	/* Store a copy of xwc since configureXWindow changes it's values */
+	XWindowChanges wc = xwc;
+
 	if (cw->mapNum ())
 	    cw->sendSyncRequest ();
 
@@ -310,6 +315,20 @@ GridScreen::initiateCommon (CompAction         *action,
 	    cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
 	    gw->isGridResized = true;
 	    gw->isGridMaximized = false;
+	}
+
+	/* This centers a window if it could not be resized to the desired
+	 * width. Without this, it can look buggy for windows that have
+	 * a minimum width greater than the desired width.
+	 */
+	if (centerCheck && (cw->serverInputRect ().width () >
+			    desiredSlot.width ()))
+	{
+	    wc.x = (workarea.width () >> 1) -
+		  ((cw->serverInputRect ().width () >> 1) -
+		    cw->input ().left);
+	    cw->configureXWindow (CWX, &wc);
+	    centerCheck = false;
 	}
     }
 
@@ -582,7 +601,8 @@ GridScreen::GridScreen (CompScreen *screen) :
     PluginClassHandler<GridScreen, CompScreen> (screen),
     cScreen (CompositeScreen::get (screen)),
     glScreen (GLScreen::get (screen)),
-    resizeCount (0)
+    resizeCount (0),
+    centerCheck (false)
 {
 
     ScreenInterface::setHandler (screen, false);
