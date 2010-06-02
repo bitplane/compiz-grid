@@ -60,7 +60,7 @@ GridScreen::constrainSize (CompWindow      *w,
     CompRect result;
     int      cw, ch;
 
-    result   = slotToRect (w, slot);
+    result = slotToRect (w, slot);
 
     if (w->constrainNewWindowSize (result.width (), result.height (), &cw, &ch))
     {
@@ -224,8 +224,9 @@ GridScreen::initiateCommon (CompAction         *action,
 					  props.gravityRight * slotWidth66);
 			resizeCount++;
 			break;
-		    // We don't have to handle case 2
-		    // because this is already the default
+		    /* We don't need to handle case this
+		     * case because it is the default
+		     */ 
 		    case 3:
 			desiredSlot.setWidth (slotWidth66);
 			desiredSlot.setX (workarea.x () +
@@ -247,8 +248,6 @@ GridScreen::initiateCommon (CompAction         *action,
 		    default:
 			break;
 		}
-		if (resizeCount == 6)
-		    resizeCount = 1;
 	    }
 	    else /* keys (2, 5, 8) */
 	    {
@@ -283,14 +282,17 @@ GridScreen::initiateCommon (CompAction         *action,
 			desiredSlot.setX (workarea.x () + slotWidth17);
 			resizeCount++;
 			break;
-		    // We don't have to handle case 5
-		    // because this is already the default
+		    /* We don't need to handle case this
+		     * case because it is the default
+		     */ 
 		    default:
 			break;
 		}
-		if (resizeCount == 6)
-		    resizeCount = 1;
 	    }
+
+	    if (resizeCount == 6)
+		resizeCount = 1;
+
 	    desiredRect = constrainSize (cw, desiredSlot);
 	}
 
