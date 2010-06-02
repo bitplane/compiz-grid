@@ -211,18 +211,18 @@ GridScreen::initiateCommon (CompAction         *action,
 	    {
 		if (currentRect.width () == desiredRect.width () &&
 		    currentRect.x () == desiredRect.x ())
-		    resizeCount = 3;
+		    gw->resizeCount = 3;
 
 		/* tricky, have to allow for window constraints when
 		 * computing what the 33% and 66% offsets would be
 		 */
-		switch (resizeCount)
+		switch (gw->resizeCount)
 		{
 		    case 1:
 			desiredSlot.setWidth (slotWidth33);
 			desiredSlot.setX (workarea.x () +
 					  props.gravityRight * slotWidth66);
-			resizeCount++;
+			gw->resizeCount++;
 			break;
 		    /* We don't need to handle case this
 		     * case because it is the default
@@ -231,19 +231,19 @@ GridScreen::initiateCommon (CompAction         *action,
 			desiredSlot.setWidth (slotWidth66);
 			desiredSlot.setX (workarea.x () +
 					  props.gravityRight * slotWidth33);
-			resizeCount++;
+			gw->resizeCount++;
 			break;
 		    case 4:
 			desiredSlot.setWidth (slotWidth75);
 			desiredSlot.setX (workarea.x () +
 					  props.gravityRight * slotWidth25);
-			resizeCount++;
+			gw->resizeCount++;
 			break;
 		    case 5:
 			desiredSlot.setWidth (slotWidth25);
 			desiredSlot.setX (workarea.x () +
 					  props.gravityRight * slotWidth75);
-			resizeCount++;
+			gw->resizeCount++;
 			break;
 		    default:
 			break;
@@ -254,33 +254,33 @@ GridScreen::initiateCommon (CompAction         *action,
 
 		if (currentRect.width () == desiredRect.width () &&
 		    currentRect.x () == desiredRect.x ())
-		    resizeCount = 1;
+		    gw->resizeCount = 1;
 		    
-		switch (resizeCount)
+		switch (gw->resizeCount)
 		{
 		    case 1:
 			desiredSlot.setWidth (slotWidth33 -
 			    (cw->input ().left + cw->input ().right));
 			desiredSlot.setX (workarea.x () + slotWidth33);
-			resizeCount++;
+			gw->resizeCount++;
 			break;
 		    case 2:
 			desiredSlot.setWidth ((slotWidth25 * 2));
 			desiredSlot.setX (workarea.x () + slotWidth25);
-			resizeCount++;
+			gw->resizeCount++;
 			break;
 		    case 3:
 			desiredSlot.setWidth ((slotWidth25 * 2) +
 					      (slotWidth17 * 2));
 			desiredSlot.setX (workarea.x () +
 					 (slotWidth25 - slotWidth17));
-			resizeCount++;
+			gw->resizeCount++;
 			break;
 		    case 4:
 			desiredSlot.setWidth (workarea.width () -
 					     (slotWidth17 * 2));
 			desiredSlot.setX (workarea.x () + slotWidth17);
-			resizeCount++;
+			gw->resizeCount++;
 			break;
 		    /* We don't need to handle case this
 		     * case because it is the default
@@ -292,8 +292,8 @@ GridScreen::initiateCommon (CompAction         *action,
 		centerCheck = true;
 	    }
 
-	    if (resizeCount == 6)
-		resizeCount = 1;
+	    if (gw->resizeCount == 6)
+		gw->resizeCount = 1;
 
 	    desiredRect = constrainSize (cw, desiredSlot);
 	}
@@ -601,7 +601,6 @@ GridScreen::GridScreen (CompScreen *screen) :
     PluginClassHandler<GridScreen, CompScreen> (screen),
     cScreen (CompositeScreen::get (screen)),
     glScreen (GLScreen::get (screen)),
-    resizeCount (0),
     centerCheck (false)
 {
 
@@ -642,6 +641,7 @@ GridWindow::GridWindow (CompWindow *window) :
     grabIsMove (false),
     isGridResized (false),
     isGridMaximized (false),
+    resizeCount (0),
     pointerBufDx (0),
     pointerBufDy (0)
 {

@@ -86,7 +86,6 @@ class GridScreen :
 	GridProps props;
 	Edges edge, lastEdge;
 	CompOption::Vector o;
-	int resizeCount;
 	bool centerCheck;
 
 	void getPaintRectangle (CompRect&);
@@ -128,7 +127,7 @@ class GridWindow :
 	GridScreen *gScreen;
 
 	bool grabIsMove, isGridResized, isGridMaximized;
-	int pointerBufDx, pointerBufDy;
+	int pointerBufDx, pointerBufDy, resizeCount;
 	CompRect originalSize;
 
 	void grabNotify (int, int, unsigned int, unsigned int);
