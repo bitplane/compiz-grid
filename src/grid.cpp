@@ -641,9 +641,9 @@ GridWindow::GridWindow (CompWindow *window) :
     grabIsMove (false),
     isGridResized (false),
     isGridMaximized (false),
-    resizeCount (0),
     pointerBufDx (0),
-    pointerBufDy (0)
+    pointerBufDy (0),
+    resizeCount (0)
 {
     WindowInterface::setHandler (window);
 }
