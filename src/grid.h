@@ -129,6 +129,7 @@ class GridWindow :
 	bool grabIsMove, isGridResized, isGridMaximized;
 	int pointerBufDx, pointerBufDy, resizeCount;
 	CompRect originalSize;
+	GridType lastTarget;
 
 	void grabNotify (int, int, unsigned int, unsigned int);
 
