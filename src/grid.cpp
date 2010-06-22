@@ -334,12 +334,13 @@ GridScreen::initiateCommon (CompAction         *action,
 		 desiredSlot.width ()) ||
 		 cw->serverInputRect ().width () <
 		 desiredSlot.width ())
-		 {
-		    wc.x = (workarea.width () >> 1) -
-			  ((cw->serverInputRect ().width () >> 1) -
-			    cw->input ().left);
-		    cw->configureXWindow (CWX, &wc);
-		}
+	    {
+		wc.x = (workarea.width () >> 1) -
+		      ((cw->serverInputRect ().width () >> 1) -
+			cw->input ().left);
+		cw->configureXWindow (CWX, &wc);
+	    }
+
 	    centerCheck = false;
 	}
 
@@ -571,6 +572,7 @@ GridWindow::grabNotify (int          x,
 	    originalSize = gScreen->slotToRect(window,
 						    window->serverInputRect ());
     }
+
     if (screen->grabExist ("resize"))
     {
 	isGridResized = false;
@@ -631,8 +633,8 @@ GridScreen::GridScreen (CompScreen *screen) :
     currentWorkarea = lastWorkarea = screen->getWorkareaForOutput
 			    (screen->outputDeviceForPoint (pointerX, pointerY));
 
-#define GRIDSET(opt,where,resize)						\
-    optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon,this,	\
+#define GRIDSET(opt,where,resize)					       \
+    optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon, this,  \
 					   _1, _2, _3, where, resize))
 
     GRIDSET (PutCenterKey, GridCenter, true);
