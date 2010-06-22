@@ -116,10 +116,6 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	props = gridProps[where];
 
-	if (!gw->isGridResized && optionGetSnapbackWindows ())
-	    /* Store size not including borders */
-	    gw->originalSize = slotToRect(cw, cw->serverInputRect ());
-
 	/* get current available area */
 	if (gw->grabIsMove)
 	    workarea = screen->getWorkareaForOutput
@@ -130,6 +126,10 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	    if (props.numCellsX == 1)
 		centerCheck = true;
+
+	    if (!gw->isGridResized)
+		/* Store size not including borders when using a keybinding */
+		gw->originalSize = slotToRect(cw, cw->serverInputRect ());
 	}
 
 	if ((cw->state () & MAXIMIZE_STATE) &&
@@ -452,10 +452,6 @@ GridScreen::edgeToGridType ()
 void
 GridScreen::handleEvent (XEvent *event)
 {
-    XWindowChanges xwc;
-    CompWindow *cw = screen->findWindow
-				(CompOption::getIntOptionNamed (o, "window"));
-
     screen->handleEvent (event);
 
     if (event->type != MotionNotify)
@@ -524,7 +520,8 @@ GridScreen::handleEvent (XEvent *event)
 	    cScreen->damageRegion (desiredSlot);
     }
 
-    GRID_WINDOW (cw);
+    GRID_WINDOW (screen->findWindow
+				(CompOption::getIntOptionNamed (o, "window")));
 
     if ((gw->pointerBufDx > SNAPOFF_THRESHOLD ||
 	 gw->pointerBufDy > SNAPOFF_THRESHOLD ||
@@ -532,23 +529,7 @@ GridScreen::handleEvent (XEvent *event)
 	 gw->pointerBufDy < -SNAPOFF_THRESHOLD) &&
 	 gw->isGridResized &&
 	 optionGetSnapbackWindows ())
-    {
-	if (gw->isGridMaximized & !(cw->state () & MAXIMIZE_STATE))
-		gw->isGridMaximized = false;
-	else
-	{
-	    xwc.x = pointerX - (gw->originalSize.width () >> 1);
-	    xwc.y = pointerY + (cw->input ().top >> 1);
-	    xwc.width  = gw->originalSize.width ();
-	    xwc.height = gw->originalSize.height ();
-	    cw->maximize (0);
-	    cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
-	    gw->pointerBufDx = 0;
-	    gw->pointerBufDy = 0;
-	}
-	gw->isGridResized = false;
-	gw->resizeCount = 0;
-    }
+	    restoreWindow (0, 0, o);
 }
 
 void
@@ -568,7 +549,7 @@ GridWindow::grabNotify (int          x,
 	pointerBufDx = pointerBufDy = 0;
 
 	if (!isGridResized && gScreen->optionGetSnapbackWindows ())
-	    /* Store size not including borders */
+	    /* Store size not including borders when grabbing with cursor */
 	    originalSize = gScreen->slotToRect(window,
 						    window->serverInputRect ());
     }
@@ -604,6 +585,46 @@ GridWindow::moveNotify (int dx, int dy, bool immediate)
 
     pointerBufDx += dx;
     pointerBufDy += dy;
+}
+
+bool
+GridScreen::restoreWindow (CompAction         *action,
+			   CompAction::State  state,
+			   CompOption::Vector &option)
+{
+    XWindowChanges xwc;
+    CompWindow *cw = screen->findWindow (screen->activeWindow ());
+
+    GRID_WINDOW (cw);
+
+    if (!gw->isGridResized)
+	return false;
+
+    if (gw->isGridMaximized & !(cw->state () & MAXIMIZE_STATE))
+	    gw->isGridMaximized = false;
+    else
+    {
+	if (gw->grabIsMove)
+	{
+	    xwc.x = pointerX - (gw->originalSize.width () >> 1);
+	    xwc.y = pointerY + (cw->input ().top >> 1);
+	}
+	else
+	{
+	    xwc.x = gw->originalSize.x ();
+	    xwc.y = gw->originalSize.y ();
+	}
+	xwc.width  = gw->originalSize.width ();
+	xwc.height = gw->originalSize.height ();
+	cw->maximize (0);
+	cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
+	gw->pointerBufDx = 0;
+	gw->pointerBufDy = 0;
+    }
+    gw->isGridResized = false;
+    gw->resizeCount = 0;
+
+    return true;
 }
 
 void
@@ -652,6 +673,9 @@ GridScreen::GridScreen (CompScreen *screen) :
 
     optionSetSnapbackWindowsNotify (boost::bind (&GridScreen::
 				    snapbackOptionChanged, this, _1, _2));
+
+    optionSetPutRestoreKeyInitiate (boost::bind (&GridScreen::
+					    restoreWindow, this, _1, _2, _3));
 
 }
 
