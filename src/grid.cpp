@@ -114,6 +114,8 @@ GridScreen::initiateCommon (CompAction         *action,
 	if (gw->lastTarget != where)
 	    gw->resizeCount = 0;
 
+	props = gridProps[where];
+
 	if (!gw->isGridResized && optionGetSnapbackWindows ())
 	    /* Store size not including borders */
 	    gw->originalSize = slotToRect(cw, cw->serverInputRect ());
@@ -123,7 +125,12 @@ GridScreen::initiateCommon (CompAction         *action,
 	    workarea = screen->getWorkareaForOutput
 			    (screen->outputDeviceForPoint (pointerX, pointerY));
 	else
+	{
 	    workarea = screen->getWorkareaForOutput (cw->outputDevice ());
+
+	    if (props.numCellsX == 1)
+		centerCheck = true;
+	}
 
 	if ((cw->state () & MAXIMIZE_STATE) &&
 	    (resize || optionGetSnapoffMaximized ()))
@@ -149,8 +156,6 @@ GridScreen::initiateCommon (CompAction         *action,
 	    return true;
 	}
 
-	props = gridProps[where];
-
 	/* Convention:
 	 * xxxSlot include decorations (it's the screen area occupied)
 	 * xxxRect are undecorated (it's the constrained position
@@ -171,9 +176,6 @@ GridScreen::initiateCommon (CompAction         *action,
 	currentRect.setGeometry (cw->serverX (), cw->serverY (),
 				 cw->serverWidth (),
 				 cw->serverHeight ());
-
-	if (!(props.numCellsX == 2))
-	    centerCheck = true;
 
 	if (desiredRect.y () == currentRect.y () &&
 	    desiredRect.height () == currentRect.height () &&
@@ -326,15 +328,18 @@ GridScreen::initiateCommon (CompAction         *action,
 	 * width. Without this, it can look buggy when desired width is
 	 * beyond the minimum or maximum width of the window.
 	 */
-	if (centerCheck && ((cw->serverInputRect ().width () >
-			     desiredSlot.width ()) ||
-			     cw->serverInputRect ().width () <
-			     desiredSlot.width ()))
+	if (centerCheck)
 	{
-	    wc.x = (workarea.width () >> 1) -
-		  ((cw->serverInputRect ().width () >> 1) -
-		    cw->input ().left);
-	    cw->configureXWindow (CWX, &wc);
+	    if ((cw->serverInputRect ().width () >
+		 desiredSlot.width ()) ||
+		 cw->serverInputRect ().width () <
+		 desiredSlot.width ())
+		 {
+		    wc.x = (workarea.width () >> 1) -
+			  ((cw->serverInputRect ().width () >> 1) -
+			    cw->input ().left);
+		    cw->configureXWindow (CWX, &wc);
+		}
 	    centerCheck = false;
 	}
 
