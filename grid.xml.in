@@ -71,6 +71,11 @@
 		    <_long>Maximize window</_long>
 		    <default>&lt;Control&gt;&lt;Alt&gt;KP_0</default>
 		</option>
+		<option name="put_restore_key" type="key">
+		    <_short>Restore</_short>
+		    <_long>Restore window to it's original size</_long>
+		    <default>&lt;Control&gt;&lt;Alt&gt;r</default>
+		</option>
 	    </group>
 	    <group>
 		<_short>Edges</_short>

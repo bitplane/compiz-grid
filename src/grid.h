@@ -104,6 +104,10 @@ class GridScreen :
 
 	void handleEvent (XEvent *event);
 
+	bool restoreWindow (CompAction*,
+			    CompAction::State,
+			    CompOption::Vector&);
+
 	void
 	snapbackOptionChanged (CompOption *option,
 				Options    num);
@@ -133,6 +137,7 @@ class GridWindow :
 	int pointerBufDy;
 	int resizeCount;
 	CompRect originalSize;
+	GridType lastTarget;
 
 	void grabNotify (int, int, unsigned int, unsigned int);
 
