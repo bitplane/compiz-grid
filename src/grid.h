@@ -130,8 +130,12 @@ class GridWindow :
 	CompWindow *window;
 	GridScreen *gScreen;
 
-	bool grabIsMove, isGridResized, isGridMaximized;
-	int pointerBufDx, pointerBufDy, resizeCount;
+	bool grabIsMove;
+	bool isGridResized;
+	bool isGridMaximized;
+	int pointerBufDx;
+	int pointerBufDy;
+	int resizeCount;
 	CompRect originalSize;
 	GridType lastTarget;
 
