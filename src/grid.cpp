@@ -595,6 +595,9 @@ GridScreen::restoreWindow (CompAction         *action,
     XWindowChanges xwc;
     CompWindow *cw = screen->findWindow (screen->activeWindow ());
 
+    if (!cw)
+	return false;
+
     GRID_WINDOW (cw);
 
     if (!gw->isGridResized)
