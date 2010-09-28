@@ -6,7 +6,6 @@
 	<category>Window Management</category>
 	<deps>
 	    <requirement>
-		<plugin>composite</plugin>
 		<plugin>opengl</plugin>
 	    </requirement>
 	    <relation type="before">
