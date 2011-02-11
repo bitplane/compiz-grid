@@ -117,7 +117,7 @@ GridScreen::initiateCommon (CompAction         *action,
 	props = gridProps[where];
 
 	/* get current available area */
-	if (gw->grabIsMove)
+	if (cw == mGrabWindow)
 	    workarea = screen->getWorkareaForOutput
 			    (screen->outputDeviceForPoint (pointerX, pointerY));
 	else
@@ -142,7 +142,7 @@ GridScreen::initiateCommon (CompAction         *action,
 	if (where == GridMaximize && resize)
 	{
 	    /* move the window to the correct output */
-	    if (GridWindow::get (cw)->grabIsMove)
+	    if (cw == mGrabWindow)
 	    {
 		xwc.x = workarea.x () + 50;
 		xwc.y = workarea.y () + 50;
@@ -452,45 +452,51 @@ GridScreen::edgeToGridType ()
 void
 GridScreen::handleEvent (XEvent *event)
 {
+    CompOutput out;
+
     screen->handleEvent (event);
 
-    if (event->type != MotionNotify)
+    if (event->type != MotionNotify || !mGrabWindow)
 	return;
+
+    out = screen->outputDevs ().at (
+                   screen->outputDeviceForPoint (CompPoint (pointerX, pointerY)));
 
     /* Detect corners first */
     /* Bottom Left */
-    if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()) &&
-	pointerX < optionGetLeftEdgeThreshold())
+    if (pointerY > (out.y () + out.height () - optionGetBottomEdgeThreshold()) &&
+        pointerX < out.x () + optionGetLeftEdgeThreshold())
 	edge = BottomLeft;
     /* Bottom Right */
-    else if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()) &&
-	     pointerX > (screen->width() - optionGetRightEdgeThreshold()))
+    else if (pointerY > (out.y () + out.height () - optionGetBottomEdgeThreshold()) &&
+             pointerX > (out.x () + out.width () - optionGetRightEdgeThreshold()))
 	edge = BottomRight;
     /* Top Left */
     else if (pointerY < optionGetTopEdgeThreshold() &&
 	    pointerX < optionGetLeftEdgeThreshold())
 	edge = TopLeft;
     /* Top Right */
-    else if (pointerY < optionGetTopEdgeThreshold() &&
-	     pointerX > (screen->width() - optionGetRightEdgeThreshold()))
+    else if (pointerY < out.y () + optionGetTopEdgeThreshold() &&
+             pointerX > (out.x () + out.width () - optionGetRightEdgeThreshold()))
 	edge = TopRight;
     /* Left */
-    else if (pointerX < optionGetLeftEdgeThreshold())
+    else if (pointerX < out.x () + optionGetLeftEdgeThreshold())
 	edge = Left;
     /* Right */
-    else if (pointerX > (screen->width() - optionGetRightEdgeThreshold()))
+    else if (pointerX > (out.x () + out.width () - optionGetRightEdgeThreshold()))
 	edge = Right;
     /* Top */
-    else if (pointerY < optionGetTopEdgeThreshold())
+    else if (pointerY < out.y () + optionGetTopEdgeThreshold())
 	edge = Top;
     /* Bottom */
-    else if (pointerY > (screen->height() - optionGetBottomEdgeThreshold()))
+    else if (pointerY > (out.y () + out.height () - optionGetBottomEdgeThreshold()))
 	edge = Bottom;
     /* No Edge */
     else
 	edge = NoEdge;
 
     /* Detect when cursor enters another output */
+
     currentWorkarea = screen->getWorkareaForOutput
 			    (screen->outputDeviceForPoint (pointerX, pointerY));
     if (lastWorkarea != currentWorkarea)
@@ -545,7 +551,7 @@ GridWindow::grabNotify (int          x,
 
 	screen->handleEventSetEnabled (gScreen, true);
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, true);
-	grabIsMove = true;
+	gScreen->mGrabWindow = window;
 	pointerBufDx = pointerBufDy = 0;
 
 	if (!isGridResized && gScreen->optionGetSnapbackWindows ())
@@ -564,14 +570,14 @@ GridWindow::grabNotify (int          x,
 void
 GridWindow::ungrabNotify ()
 {
-    if (grabIsMove)
+    if (window == gScreen->mGrabWindow)
     {
 	gScreen->initiateCommon
 			(0, 0, gScreen->o, gScreen->edgeToGridType (), true);
 
 	screen->handleEventSetEnabled (gScreen, false);
 	gScreen->glScreen->glPaintOutputSetEnabled (gScreen, false);
-	grabIsMove = false;
+	gScreen->mGrabWindow = NULL;
 	gScreen->cScreen->damageRegion (gScreen->desiredSlot);
     }
 
@@ -607,7 +613,7 @@ GridScreen::restoreWindow (CompAction         *action,
 	    gw->isGridMaximized = false;
     else
     {
-	if (gw->grabIsMove)
+        if (cw == mGrabWindow)
 	{
 	    xwc.x = pointerX - (gw->originalSize.width () >> 1);
 	    xwc.y = pointerY + (cw->input ().top >> 1);
@@ -646,7 +652,8 @@ GridScreen::GridScreen (CompScreen *screen) :
     PluginClassHandler<GridScreen, CompScreen> (screen),
     cScreen (CompositeScreen::get (screen)),
     glScreen (GLScreen::get (screen)),
-    centerCheck (false)
+    centerCheck (false),
+    mGrabWindow (NULL)
 {
 
     ScreenInterface::setHandler (screen, false);
@@ -686,7 +693,6 @@ GridWindow::GridWindow (CompWindow *window) :
     PluginClassHandler <GridWindow, CompWindow> (window),
     window (window),
     gScreen (GridScreen::get (screen)),
-    grabIsMove (false),
     isGridResized (false),
     isGridMaximized (false),
     pointerBufDx (0),

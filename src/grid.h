@@ -87,6 +87,7 @@ class GridScreen :
 	Edges edge, lastEdge;
 	CompOption::Vector o;
 	bool centerCheck;
+	CompWindow *mGrabWindow;
 
 	void getPaintRectangle (CompRect&);
 
@@ -130,7 +131,6 @@ class GridWindow :
 	CompWindow *window;
 	GridScreen *gScreen;
 
-	bool grabIsMove;
 	bool isGridResized;
 	bool isGridMaximized;
 	int pointerBufDx;
