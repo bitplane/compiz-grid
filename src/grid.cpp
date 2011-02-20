@@ -565,6 +565,8 @@ GridWindow::grabNotify (int          x,
 	isGridResized = false;
 	resizeCount = 0;
     }
+
+    window->grabNotify (x, y, state, mask);
 }
 
 void
@@ -582,6 +584,8 @@ GridWindow::ungrabNotify ()
     }
 
     gScreen->edge = NoEdge;
+
+    window->ungrabNotify ();
 }
 
 void
