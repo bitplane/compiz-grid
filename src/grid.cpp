@@ -227,30 +227,30 @@ GridScreen::initiateCommon (CompAction         *action,
 		switch (gw->resizeCount)
 		{
 		    case 1:
-			desiredSlot.setWidth (slotWidth33);
+			desiredSlot.setWidth (slotWidth66);
 			desiredSlot.setX (workarea.x () +
-					  props.gravityRight * slotWidth66);
+					  props.gravityRight * slotWidth33);
 			gw->resizeCount++;
 			break;
 		    case 2:
 			gw->resizeCount++;
 			break;
 		    case 3:
-			desiredSlot.setWidth (slotWidth66);
+			desiredSlot.setWidth (slotWidth33);
 			desiredSlot.setX (workarea.x () +
-					  props.gravityRight * slotWidth33);
+					  props.gravityRight * slotWidth66);
 			gw->resizeCount++;
 			break;
 		    case 4:
-			desiredSlot.setWidth (slotWidth75);
-			desiredSlot.setX (workarea.x () +
-					  props.gravityRight * slotWidth25);
-			gw->resizeCount++;
-			break;
-		    case 5:
 			desiredSlot.setWidth (slotWidth25);
 			desiredSlot.setX (workarea.x () +
 					  props.gravityRight * slotWidth75);
+			gw->resizeCount++;
+			break;
+		    case 5:
+			desiredSlot.setWidth (slotWidth75);
+			desiredSlot.setX (workarea.x () +
+					  props.gravityRight * slotWidth25);
 			gw->resizeCount++;
 			break;
 		    default:
@@ -268,27 +268,27 @@ GridScreen::initiateCommon (CompAction         *action,
 		switch (gw->resizeCount)
 		{
 		    case 1:
-			desiredSlot.setWidth (slotWidth33 -
-			    (cw->input ().left + cw->input ().right));
-			desiredSlot.setX (workarea.x () + slotWidth33);
+			desiredSlot.setWidth (workarea.width () -
+					     (slotWidth17 * 2));
+			desiredSlot.setX (workarea.x () + slotWidth17);
 			gw->resizeCount++;
 			break;
 		    case 2:
-			desiredSlot.setWidth ((slotWidth25 * 2));
-			desiredSlot.setX (workarea.x () + slotWidth25);
-			gw->resizeCount++;
-			break;
-		    case 3:
 			desiredSlot.setWidth ((slotWidth25 * 2) +
 					      (slotWidth17 * 2));
 			desiredSlot.setX (workarea.x () +
 					 (slotWidth25 - slotWidth17));
 			gw->resizeCount++;
 			break;
+		    case 3:
+			desiredSlot.setWidth ((slotWidth25 * 2));
+			desiredSlot.setX (workarea.x () + slotWidth25);
+			gw->resizeCount++;
+			break;
 		    case 4:
-			desiredSlot.setWidth (workarea.width () -
-					     (slotWidth17 * 2));
-			desiredSlot.setX (workarea.x () + slotWidth17);
+			desiredSlot.setWidth (slotWidth33 -
+			    (cw->input ().left + cw->input ().right));
+			desiredSlot.setX (workarea.x () + slotWidth33);
 			gw->resizeCount++;
 			break;
 		    case 5:
