@@ -186,33 +186,6 @@ GridScreen::initiateCommon (CompAction         *action,
 	    int slotWidth17  = slotWidth33 - slotWidth25;
 	    int slotWidth66  = workarea.width () - slotWidth33;
 	    int slotWidth75  = workarea.width () - slotWidth25;
-	    
-	    CompRect rect25, rect33, rect66, rect75,
-		     slot25, slot33, slot66, slot75;
-
-	    slot25 = desiredSlot;
-	    slot25.setX (workarea.x () +
-			 props.gravityRight * slotWidth75);
-	    slot25.setWidth (slotWidth25);
-	    rect25 = constrainSize (cw, slot25);
-
-	    slot33 = desiredSlot;
-	    slot33.setX (workarea.x () +
-			 props.gravityRight * slotWidth66);
-	    slot33.setWidth (slotWidth33);
-	    rect33 = constrainSize (cw, slot33);
-
-	    slot66 = desiredSlot;
-	    slot66.setX (workarea.x () +
-			 props.gravityRight * slotWidth33);
-	    slot66.setWidth (slotWidth66);
-	    rect66 = constrainSize (cw, slot66);
-
-	    slot75 = desiredSlot;
-	    slot75.setX (workarea.x () +
-			 props.gravityRight * slotWidth25);
-	    slot75.setWidth (slotWidth75);
-	    rect75 = constrainSize (cw, slot75);
 
 	    if (props.numCellsX == 2) /* keys (1, 4, 7, 3, 6, 9) */
 	    {
