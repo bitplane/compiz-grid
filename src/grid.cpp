@@ -47,10 +47,10 @@ CompRect
 GridScreen::slotToRect (CompWindow      *w,
 			const CompRect& slot)
 {
-    return CompRect (slot.x () + w->input ().left,
-		     slot.y () + w->input ().top,
-		     slot.width () - (w->input ().left + w->input ().right),
-		     slot.height () - (w->input ().top + w->input ().bottom));
+    return CompRect (slot.x () + w->border ().left,
+		     slot.y () + w->border ().top,
+		     slot.width () - (w->border ().left + w->border ().right),
+		     slot.height () - (w->border ().top + w->border ().bottom));
 }
 
 CompRect
@@ -65,8 +65,8 @@ GridScreen::constrainSize (CompWindow      *w,
     if (w->constrainNewWindowSize (result.width (), result.height (), &cw, &ch))
     {
 	/* constrained size may put window offscreen, adjust for that case */
-	int dx = result.x () + cw - workarea.right () + w->input ().right;
-	int dy = result.y () + ch - workarea.bottom () + w->input ().bottom;
+	int dx = result.x () + cw - workarea.right () + w->border ().right;
+	int dy = result.y () + ch - workarea.bottom () + w->border ().bottom;
 
 	if (dx > 0)
 	    result.setX (result.x () - dx);
@@ -129,7 +129,7 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	    if (!gw->isGridResized)
 		/* Store size not including borders when using a keybinding */
-		gw->originalSize = slotToRect(cw, cw->serverInputRect ());
+		gw->originalSize = slotToRect(cw, cw->serverBorderRect ());
 	}
 
 	if ((cw->state () & MAXIMIZE_STATE) &&
@@ -182,7 +182,7 @@ GridScreen::initiateCommon (CompAction         *action,
 	    where != GridMaximize && gw->lastTarget == where)
 	{
 	    int slotWidth25  = workarea.width () / 4;
-	    int slotWidth33  = (workarea.width () / 3) + cw->input ().left;
+	    int slotWidth33  = (workarea.width () / 3) + cw->border ().left;
 	    int slotWidth17  = slotWidth33 - slotWidth25;
 	    int slotWidth66  = workarea.width () - slotWidth33;
 	    int slotWidth75  = workarea.width () - slotWidth25;
@@ -260,7 +260,7 @@ GridScreen::initiateCommon (CompAction         *action,
 			break;
 		    case 4:
 			desiredSlot.setWidth (slotWidth33 -
-			    (cw->input ().left + cw->input ().right));
+			    (cw->border ().left + cw->border ().right));
 			desiredSlot.setX (workarea.x () + slotWidth33);
 			gw->resizeCount++;
 			break;
@@ -303,14 +303,14 @@ GridScreen::initiateCommon (CompAction         *action,
 	 */
 	if (centerCheck)
 	{
-	    if ((cw->serverInputRect ().width () >
+	    if ((cw->serverBorderRect ().width () >
 		 desiredSlot.width ()) ||
-		 cw->serverInputRect ().width () <
+		 cw->serverBorderRect ().width () <
 		 desiredSlot.width ())
 	    {
 		wc.x = (workarea.width () >> 1) -
-		      ((cw->serverInputRect ().width () >> 1) -
-			cw->input ().left);
+		      ((cw->serverBorderRect ().width () >> 1) -
+			cw->border ().left);
 		cw->configureXWindow (CWX, &wc);
 	    }
 
@@ -530,7 +530,7 @@ GridWindow::grabNotify (int          x,
 	if (!isGridResized && gScreen->optionGetSnapbackWindows ())
 	    /* Store size not including borders when grabbing with cursor */
 	    originalSize = gScreen->slotToRect(window,
-						    window->serverInputRect ());
+						    window->serverBorderRect ());
     }
 
     if (screen->grabExist ("resize"))
@@ -593,7 +593,7 @@ GridScreen::restoreWindow (CompAction         *action,
         if (cw == mGrabWindow)
 	{
 	    xwc.x = pointerX - (gw->originalSize.width () >> 1);
-	    xwc.y = pointerY + (cw->input ().top >> 1);
+	    xwc.y = pointerY + (cw->border ().top >> 1);
 	}
 	else
 	{
