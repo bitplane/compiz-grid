@@ -68,6 +68,23 @@ enum Edges
     TopRight
 };
 
+class Animation
+{
+	public:
+
+	Animation ();
+
+	GLfloat progress;
+	CompRect fromRect;
+	CompRect targetRect;
+	CompRect currentRect;
+	GLfloat opacity;
+	GLfloat timer;
+	int duration;
+	bool complete;
+	bool fadingOut;
+};
+
 class GridScreen :
     public ScreenInterface,
     public CompositeScreenInterface,
@@ -81,15 +98,17 @@ class GridScreen :
 	CompositeScreen *cScreen;
 	GLScreen        *glScreen;
 
-	CompRect workarea, currentRect, desiredSlot,
+	CompRect workarea, currentRect, desiredSlot, lastSlot,
 		 desiredRect, lastWorkarea, currentWorkarea;
 	GridProps props;
 	Edges edge, lastEdge;
 	CompOption::Vector o;
 	bool centerCheck;
 	CompWindow *mGrabWindow;
+	bool animating;
 
 	void getPaintRectangle (CompRect&);
+	void setCurrentRect (Animation&);
 
 	bool initiateCommon (CompAction*, CompAction::State,
 			     CompOption::Vector&, GridType, bool);
@@ -100,6 +119,11 @@ class GridScreen :
 	bool glPaintOutput (const GLScreenPaintAttrib &,
 			    const GLMatrix &, const CompRegion &,
 			    CompOutput *, unsigned int);
+
+	void preparePaint (int msSinceLastPaint);
+	void donePaint ();
+
+	std::vector <Animation> animations;
 
 	GridType edgeToGridType ();
 
