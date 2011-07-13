@@ -1,0 +1,364 @@
+Sam Spilsbury <sam.spilsbury@canonical.com>	2011-07-13
+
+    Added VERSION file
+
+Scott Moreau <oreaus@gmail.com>	2011-05-26
+
+    Animate indicator visuals.
+
+Sam Spilsbury <sam.spilsbury@canonical.com>	2011-03-14
+
+    Update for new core API
+
+Scott Moreau <oreaus@gmail.com>	2011-02-22
+
+    Removed unused code.
+
+Scott Moreau <oreaus@gmail.com>	2011-02-22
+
+    Change cycling to give a more natural feel.
+
+Sam Spilsbury <sam.spilsbury@canonical.com>	2011-02-20
+
+    Call next wrapped functions in chain. Fixes LP #716613
+
+Sam Spilsbury <sam.spilsbury@canonical.com>	2011-02-11
+
+    Allow edge snap to be used on the edges of each individual output
+    rather than on the edges of each screen as a whole
+
+Scott Moreau <oreaus@gmail.com>	2010-09-28
+
+    Don't require composite since opengl already does.
+
+Merge: ac8d52b ca91d73
+Scott Moreau <oreaus@gmail.com>	2010-07-01
+
+    Merge branch 'master' of git+ssh://git.compiz.org/git/compiz/plugins/grid
+
+Scott Moreau <oreaus@gmail.com>	2010-07-01
+
+    Add NULL check to prevent potential crash.
+
+Merge: 7ea8483 d18577d
+Sam Spilsbury <smspillaz@gmail.com>	2010-07-02
+
+    Merge branch 'master' of git+ssh://git.opencompositing.org/git/compiz/plugins/grid
+    
+    Conflicts:
+src/grid.cpp           
+
+Sam Spilsbury <smspillaz@gmail.com>	2010-07-01
+
+    Cleanup
+
+Scott Moreau <oreaus@gmail.com>	2010-06-22
+
+    Add restore window keybinding.
+
+Scott Moreau <oreaus@gmail.com>	2010-06-22
+
+    Minor cleanup.
+
+Scott Moreau <oreaus@gmail.com>	2010-06-22
+
+    Better center check handling.
+
+Scott Moreau <oreaus@gmail.com>	2010-06-21
+
+    Center windows with maximum width less than desired width.
+
+Scott Moreau <oreaus@gmail.com>	2010-06-21
+
+    Fix warning.
+
+Scott Moreau <oreaus@gmail.com>	2010-06-02
+
+    Store resizeCount for each window.
+
+Scott Moreau <oreaus@gmail.com>	2010-06-02
+
+    Center window if its minimum width is greater than desired width, which causes buggy behavior with middle keys.
+
+Scott Moreau <oreaus@gmail.com>	2010-06-02
+
+    Minor cleanup.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-31
+
+    Store original size on grab.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-31
+
+    Properly store original window sizes.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-30
+
+    Remove unused variable.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-30
+
+    More concise placement.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-30
+
+    Iterate through resizes instead of rely on window size checking. This is so walking through sizes doesn't get
+    stuck with windows that have a minimum size larger than our smallest.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-30
+
+    Save original window size when using key bindings so snap back works correctly.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-30
+
+    Up number of resize states to 5.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-30
+
+    Implement tristate for middle grid as well.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-30
+
+    Add GRID_WINDOW macro.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-30
+
+    Whitespace fixes.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-30
+
+    Fix porting typo.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-29
+
+    Don't snap back after we've already snapped back.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-29
+
+    Fix typo.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-29
+
+    Clean up.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-29
+
+    Add padding so windows are restored without border being off-screen.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-29
+
+    Keep track of our maximized state so we don't try to snap back windows that were maximized by grid but have been
+    restored by some other method already.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-29
+
+    Adjust window to pointer instead of trying to move the pointer.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-29
+
+    Remove unused variables.
+
+Scott Moreau <oreaus@gmail.com>	2010-05-25
+
+    Load before wobbly.
+
+Sam Spilsbury <SmSpillaz@gmail.com>	2010-05-25
+
+    Load after decor plugin to prevent windows moving after plugin load
+
+Sam Spilsbury <smspillaz@XPS-FEDORA.(none)>	2010-05-07
+
+    Use proper CamelCaps and fix incorrect memory usage
+
+Sam <smspillaz@gmail.com>	2010-04-05
+
+    Fix warning
+
+Scott Moreau <oreaus@gmail.com>	2010-02-11
+
+    Snap windows to original size when dragging away from gridded position.
+
+Merge: 8613334 866ca3f
+Sam Spilsbury <smspillaz@gmail.com>	2010-02-05
+
+    Merge branch 'master' of git+ssh://smspillaz@git.compiz.org/git/compiz/plugins/grid
+
+Sam Spilsbury <smspillaz@gmail.com>	2010-02-05
+
+    Fix warnings
+
+Sam Spilsbury <smspillaz@gmail.com>	2010-02-03
+
+    Fix possible segfault on 64 bit arch when passing 0 to va_list and retrieving it as a pointer
+
+Scott Moreau <oreaus@gmail.com>	2010-01-25
+
+    Don't draw visual indicator for edges without a resize action set.
+
+Scott Moreau <oreaus@gmail.com>	2010-01-14
+
+    Remove unused variable.
+
+Scott Moreau <oreaus@gmail.com>	2010-01-11
+
+    Fix visual indicator for maximize when window is already maximized.
+
+Scott Moreau <oreaus@gmail.com>	2010-01-07
+
+    Properly detect workarea. This fixes window resizing when using screens of different sizes.
+
+Scott Moreau <oreaus@gmail.com>	2010-01-07
+
+    Enable visual indicator by default.
+
+Scott Moreau <oreaus@gmail.com>	2010-01-07
+
+    Add snappoff maximized windows option.
+
+Scott Moreau <oreaus@gmail.com>	2010-01-07
+
+    Detect when cursor crosses into another output.
+
+Scott Moreau <oreaus@gmail.com>	2010-01-07
+
+    Simplify code.
+
+Scott Moreau <oreaus@gmail.com>	2010-01-07
+
+    Maximize to correct output.
+
+Scott Moreau <oreaus@gmail.com>	2010-01-07
+
+    Depend on composite and opengl.
+
+Scott Moreau <oreaus@gmail.com>	2009-12-23
+
+    Address maximize visual.
+
+Merge: 2cb7562 74fc94e
+Sam Spilsbury <smspillaz@gmail.com>	2009-12-20
+
+    Merge branch 'master' of git+ssh://smspillaz@git.compiz.org/git/compiz/plugins/grid
+
+Sam Spilsbury <smspillaz@gmail.com>	2009-12-20
+
+    Apply patch by Scott Moreau to fix build
+
+Danny Baumann <dannybaumann@web.de>	2009-12-18
+
+    Minor cleanup.
+
+Scott Moreau <oreaus@gmail.com>	2009-12-18
+
+    Fix damage regions.
+
+Danny Baumann <dannybaumann@web.de>	2009-12-17
+
+    Another minor whitespace cleanup.
+
+Danny Baumann <dannybaumann@web.de>	2009-12-17
+
+    Minor whitespace cleanup.
+
+Scott Moreau <oreaus@gmail.com>	2009-12-17
+
+    Whitespace fixes.
+
+Scott Moreau <oreaus@gmail.com>	2009-12-17
+
+    Add visual resize indicator.
+
+Danny Baumann <dannybaumann@web.de>	2009-12-11
+
+    Remove unneded macros.
+
+Danny Baumann <dannybaumann@web.de>	2009-12-11
+
+    Build fix.
+
+Danny Baumann <dannybaumann@web.de>	2009-12-11
+
+    Fixup whitespace and indention.
+
+Scott Moreau <oreaus@gmail.com>	2009-12-11
+
+    Add edge support.
+
+Dennis Kasprzyk <onestone@compiz-fusion.org>	2009-03-16
+
+    Track core changes.
+
+Erkin Bahceci <erkinbah@gmail.com>	2009-03-14
+
+    Track core changes.
+
+Danny Baumann <dannybaumann@web.de>	2009-03-11
+
+    Use CompRect.
+
+Eduardo Gurgel Pinho <eduardo@mad4.(none)>	2009-02-27
+
+    Removing grid.c
+
+Eduardo Gurgel Pinho <eduardo@mad4.(none)>	2009-02-27
+
+    Compiz++ initial port
+
+Eduardo Gurgel Pinho <eduardo@mad4.(none)>	2009-02-27
+
+    Dummy commit
+
+Danny Baumann <dannybaumann@web.de>	2009-02-03
+
+    Indent properly.
+
+Danny Baumann <dannybaumann@web.de>	2008-11-26
+
+    Conform to compiz coding style.
+
+Stephen Kennedy <stephen@tanto.(none)>	2008-11-21
+
+    Move decls to beginning of block
+
+Stephen Kennedy <stephen@tanto.(none)>	2008-11-21
+
+    Updated formatting.
+
+Stephen Kennedy <stephen@tanto.(none)>	2008-11-05
+
+    Fixed bug which sometimes left a gap at the bottom of the screen.
+    Made the code much more readable.
+    Removed C++ comments.
+    Made more compliant with compiz coding standards.
+
+Stephen Kennedy <stephen@tanto.(none)>	2008-10-06
+
+    Update comments
+
+Stephen Kennedy <stephen@tanto.(none)>	2008-10-06
+
+    Add support for resizing windows to the middle third with keys (2,5,8)
+
+Stephen Kennedy <stephen@tanto.(none)>	2008-09-25
+
+    Add multihead support.
+
+Stephen Kennedy <stephen@tanto.(none)>	2008-09-03
+
+    Remove dummy file
+
+Stephen Kennedy <stephen@tanto.(none)>	2008-07-16
+
+    Unset maximize state when moving.
+
+Stephen Kennedy <stephen@tanto.(none)>	2008-06-28
+
+    Update TODO comments
+
+Stephen Kennedy <stephen@tanto.(none)>	2008-06-28
+
+    Initial commit.
+
+stevek <stevek@opencompositing.org>	2008-06-28
+
+    Dummy commit
