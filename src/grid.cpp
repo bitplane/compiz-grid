@@ -379,10 +379,13 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
 	{
 		GLushort *color;
 		Animation& anim = *iter;
+		float alpha = (float) optionGetFillColorAlpha () / 65535.0f * anim.opacity;
 
-		color = optionGetFillColor ();
-		glColor4us (anim.opacity * color[0], anim.opacity * color[1],
-					anim.opacity * color[2], anim.opacity * color[3]);
+		/* fill rectangle */
+		glColor4f (((float) optionGetFillColorRed () / 65535.0f) * alpha,
+			   ((float) optionGetFillColorGreen () / 65535.0f) * alpha,
+			   ((float) optionGetFillColorBlue () / 65535.0f) * alpha,
+			   alpha);
 
 		/* fill rectangle */
 		glRecti (anim.currentRect.x1 (), anim.currentRect.y2 (),
@@ -390,14 +393,20 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
 
 		/* Set outline rect smaller to avoid damage issues */
 		anim.currentRect.setGeometry (anim.currentRect.x () + 1,
-									  anim.currentRect.y () + 1,
-									  anim.currentRect.width () - 2,
-									  anim.currentRect.height () - 2);
+					      anim.currentRect.y () + 1,
+					      anim.currentRect.width () - 2,
+					      anim.currentRect.height () - 2);
 
 		/* draw outline */
 		color = optionGetOutlineColor ();
-		glColor4us (anim.opacity * color[0], anim.opacity * color[1],
-					anim.opacity * color[2], anim.opacity * color[3]);
+
+		/* draw outline */
+		glColor4f (((float) optionGetOutlineColorRed () / 65535.0f) * alpha,
+			   ((float) optionGetOutlineColorGreen () / 65535.0f) * alpha,
+			   ((float) optionGetOutlineColorBlue () / 65535.0f) * alpha,
+			   ((float) optionGetOutlineColorAlpha () / 65535.0f) * anim.opacity);
+
+		glColor4us (color[0], color[1], color[2], anim.opacity * color[3]);
 
 		glLineWidth (2.0);
 
