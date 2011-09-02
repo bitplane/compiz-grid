@@ -377,9 +377,8 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
 
 	for (iter = animations.begin (); iter != animations.end () && animating; iter++)
 	{
-		GLushort *color;
 		Animation& anim = *iter;
-		float alpha = (float) optionGetFillColorAlpha () / 65535.0f * anim.opacity;
+		float alpha = ((float) optionGetFillColorAlpha () / 65535.0f) * anim.opacity;
 
 		/* fill rectangle */
 		glColor4f (((float) optionGetFillColorRed () / 65535.0f) * alpha,
@@ -397,16 +396,13 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
 					      anim.currentRect.width () - 2,
 					      anim.currentRect.height () - 2);
 
-		/* draw outline */
-		color = optionGetOutlineColor ();
+		alpha = (float) (optionGetOutlineColorAlpha () / 65535.0f) * anim.opacity;
 
 		/* draw outline */
 		glColor4f (((float) optionGetOutlineColorRed () / 65535.0f) * alpha,
 			   ((float) optionGetOutlineColorGreen () / 65535.0f) * alpha,
 			   ((float) optionGetOutlineColorBlue () / 65535.0f) * alpha,
-			   ((float) optionGetOutlineColorAlpha () / 65535.0f) * anim.opacity);
-
-		glColor4us (color[0], color[1], color[2], anim.opacity * color[3]);
+			   alpha);
 
 		glLineWidth (2.0);
 
@@ -421,7 +417,13 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
 	if (!animating)
 	{
 		/* fill rectangle */
-		glColor4usv (optionGetFillColor ());
+		float alpha = (float) optionGetFillColorAlpha () / 65535.0f;
+
+		/* fill rectangle */
+		glColor4f (((float) optionGetFillColorRed () / 65535.0f) * alpha,
+			   ((float) optionGetFillColorGreen () / 65535.0f) * alpha,
+			   ((float) optionGetFillColorBlue () / 65535.0f) * alpha,
+			   alpha);
 		glRecti (rect.x1 (), rect.y2 (), rect.x2 (), rect.y1 ());
 
 		/* Set outline rect smaller to avoid damage issues */
@@ -429,7 +431,14 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
 				  rect.width () - 2, rect.height () - 2);
 
 		/* draw outline */
-		glColor4usv (optionGetOutlineColor ());
+		alpha = (float) optionGetOutlineColorAlpha () / 65535.0f;
+
+		/* draw outline */
+		glColor4f (((float) optionGetOutlineColorRed () / 65535.0f) * alpha,
+			   ((float) optionGetOutlineColorGreen () / 65535.0f) * alpha,
+			   ((float) optionGetOutlineColorBlue () / 65535.0f) * alpha,
+			   alpha);
+
 		glLineWidth (2.0);
 		glBegin (GL_LINE_LOOP);
 		glVertex2i (rect.x1 (), rect.y1 ());
