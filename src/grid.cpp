@@ -514,6 +514,7 @@ void
 GridScreen::handleEvent (XEvent *event)
 {
     CompOutput out;
+    CompWindow *w;
 
     screen->handleEvent (event);
 
@@ -620,16 +621,21 @@ GridScreen::handleEvent (XEvent *event)
 		lastEdge = edge;
     }
 
-    GRID_WINDOW (screen->findWindow
+    w = screen->findWindow (CompOption::getIntOptionNamed (o, "window"));
+
+    if (w)
+    {
+	GRID_WINDOW (screen->findWindow
 				(CompOption::getIntOptionNamed (o, "window")));
 
-    if ((gw->pointerBufDx > SNAPOFF_THRESHOLD ||
-	 gw->pointerBufDy > SNAPOFF_THRESHOLD ||
-	 gw->pointerBufDx < -SNAPOFF_THRESHOLD ||
-	 gw->pointerBufDy < -SNAPOFF_THRESHOLD) &&
-	 gw->isGridResized &&
-	 optionGetSnapbackWindows ())
-	    restoreWindow (0, 0, o);
+	if ((gw->pointerBufDx > SNAPOFF_THRESHOLD ||
+	     gw->pointerBufDy > SNAPOFF_THRESHOLD ||
+	     gw->pointerBufDx < -SNAPOFF_THRESHOLD ||
+	     gw->pointerBufDy < -SNAPOFF_THRESHOLD) &&
+	     gw->isGridResized &&
+	     optionGetSnapbackWindows ())
+		restoreWindow (0, 0, o);
+    }
 }
 
 void
@@ -672,6 +678,7 @@ GridWindow::ungrabNotify ()
 
 	screen->handleEventSetEnabled (gScreen, false);
 	gScreen->mGrabWindow = NULL;
+	gScreen->o[0].value ().set (0);
 	gScreen->cScreen->damageRegion (gScreen->desiredSlot);
     }
 
@@ -876,6 +883,14 @@ GridWindow::GridWindow (CompWindow *window) :
     lastTarget (GridUnknown)
 {
     WindowInterface::setHandler (window);
+}
+
+GridWindow::~GridWindow ()
+{
+    if (gScreen->mGrabWindow == window)
+	gScreen->mGrabWindow = NULL;
+
+    gScreen->o[0].value ().set (0);
 }
 
 /* Initial plugin init function called. Checks to see if we are ABI

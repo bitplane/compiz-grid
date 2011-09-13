@@ -152,6 +152,7 @@ class GridWindow :
     public:
 
 	GridWindow (CompWindow *);
+	~GridWindow ();
 	CompWindow *window;
 	GridScreen *gScreen;
 
