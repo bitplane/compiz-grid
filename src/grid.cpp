@@ -625,8 +625,7 @@ GridScreen::handleEvent (XEvent *event)
 
     if (w)
     {
-	GRID_WINDOW (screen->findWindow
-				(CompOption::getIntOptionNamed (o, "window")));
+	GRID_WINDOW (w);
 
 	if ((gw->pointerBufDx > SNAPOFF_THRESHOLD ||
 	     gw->pointerBufDy > SNAPOFF_THRESHOLD ||
