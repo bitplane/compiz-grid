@@ -119,7 +119,8 @@ GridScreen::initiateCommon (CompAction         *action,
 			    CompAction::State  state,
 			    CompOption::Vector &option,
 			    GridType           where,
-			    bool               resize)
+			    bool               resize,
+			    bool	       key)
 {
     Window     xid;
     CompWindow *cw = 0;
@@ -138,6 +139,8 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	if (gw->lastTarget != where)
 	    gw->resizeCount = 0;
+	else if (!key)
+	    return false;
 
 	props = gridProps[where];
 
@@ -515,6 +518,7 @@ GridScreen::handleEvent (XEvent *event)
 {
     CompOutput out;
     CompWindow *w;
+    bool       check = false;
 
     screen->handleEvent (event);
 
@@ -568,7 +572,7 @@ GridScreen::handleEvent (XEvent *event)
 	if (cScreen)
 	    cScreen->damageRegion (desiredSlot);
 
-	initiateCommon (0, 0, o, edgeToGridType (), false);
+	initiateCommon (0, 0, o, edgeToGridType (), false, false);
 
 	if (cScreen)
 	    cScreen->damageRegion (desiredSlot);
@@ -586,7 +590,7 @@ GridScreen::handleEvent (XEvent *event)
 		if (cScreen)
 			cScreen->damageRegion (desiredSlot);
 
-		initiateCommon (0, 0, o, edgeToGridType (), false);
+		check = initiateCommon (0, 0, o, edgeToGridType (), false, false);
 
 		if (cScreen)
 			cScreen->damageRegion (desiredSlot);
@@ -597,7 +601,7 @@ GridScreen::handleEvent (XEvent *event)
 				/* Begin fading previous animation instance */
 				animations.at (animations.size () - 1).fadingOut = true;
 
-			if (edge != NoEdge)
+			if (edge != NoEdge && check)
 			{
 				CompWindow *cw = screen->findWindow (screen->activeWindow ());
 				animations.push_back (Animation ());
@@ -645,7 +649,6 @@ GridWindow::grabNotify (int          x,
 {
     if (screen->grabExist ("move"))
     {
-	gScreen->o.push_back (CompOption ("window", CompOption::TypeInt));
 	gScreen->o[0].value ().set ((int) window->id ());
 
 	screen->handleEventSetEnabled (gScreen, true);
@@ -673,7 +676,8 @@ GridWindow::ungrabNotify ()
     if (window == gScreen->mGrabWindow)
     {
 	gScreen->initiateCommon
-			(0, 0, gScreen->o, gScreen->edgeToGridType (), true);
+			(0, 0, gScreen->o, gScreen->edgeToGridType (), true,
+			 gScreen->edge != gScreen->lastResizeEdge);
 
 	screen->handleEventSetEnabled (gScreen, false);
 	gScreen->mGrabWindow = NULL;
@@ -681,6 +685,7 @@ GridWindow::ungrabNotify ()
 	gScreen->cScreen->damageRegion (gScreen->desiredSlot);
     }
 
+    gScreen->lastResizeEdge = gScreen->edge;
     gScreen->edge = NoEdge;
 
     window->ungrabNotify ();
@@ -834,31 +839,32 @@ GridScreen::GridScreen (CompScreen *screen) :
     mGrabWindow (NULL),
     animating (false)
 {
+    o.push_back (CompOption ("window", CompOption::TypeInt));
 
     ScreenInterface::setHandler (screen, false);
     CompositeScreenInterface::setHandler (cScreen, false);
     GLScreenInterface::setHandler (glScreen, false);
 
-    edge = lastEdge = NoEdge;
+    edge = lastEdge = lastResizeEdge = NoEdge;
     currentWorkarea = lastWorkarea = screen->getWorkareaForOutput
 			    (screen->outputDeviceForPoint (pointerX, pointerY));
 
 	animations.clear ();
 
-#define GRIDSET(opt,where,resize)					       \
+#define GRIDSET(opt,where,resize,key)					       \
     optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon, this,  \
-					   _1, _2, _3, where, resize))
+					   _1, _2, _3, where, resize, key))
 
-    GRIDSET (PutCenterKey, GridCenter, true);
-    GRIDSET (PutLeftKey, GridLeft, true);
-    GRIDSET (PutRightKey, GridRight, true);
-    GRIDSET (PutTopKey, GridTop, true);
-    GRIDSET (PutBottomKey, GridBottom, true);
-    GRIDSET (PutTopleftKey, GridTopLeft, true);
-    GRIDSET (PutToprightKey, GridTopRight, true);
-    GRIDSET (PutBottomleftKey, GridBottomLeft, true);
-    GRIDSET (PutBottomrightKey, GridBottomRight, true);
-    GRIDSET (PutMaximizeKey, GridMaximize, true);
+    GRIDSET (PutCenterKey, GridCenter, true, true);
+    GRIDSET (PutLeftKey, GridLeft, true, true);
+    GRIDSET (PutRightKey, GridRight, true, true);
+    GRIDSET (PutTopKey, GridTop, true, true);
+    GRIDSET (PutBottomKey, GridBottom, true, true);
+    GRIDSET (PutTopleftKey, GridTopLeft, true, true);
+    GRIDSET (PutToprightKey, GridTopRight, true, true);
+    GRIDSET (PutBottomleftKey, GridBottomLeft, true, true);
+    GRIDSET (PutBottomrightKey, GridBottomRight, true, true);
+    GRIDSET (PutMaximizeKey, GridMaximize, true, true);
 
 #undef GRIDSET
 

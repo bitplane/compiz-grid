@@ -101,7 +101,7 @@ class GridScreen :
 	CompRect workarea, currentRect, desiredSlot, lastSlot,
 		 desiredRect, lastWorkarea, currentWorkarea;
 	GridProps props;
-	Edges edge, lastEdge;
+	Edges edge, lastEdge, lastResizeEdge;
 	CompOption::Vector o;
 	bool centerCheck;
 	CompWindow *mGrabWindow;
@@ -111,7 +111,7 @@ class GridScreen :
 	void setCurrentRect (Animation&);
 
 	bool initiateCommon (CompAction*, CompAction::State,
-			     CompOption::Vector&, GridType, bool);
+			     CompOption::Vector&, GridType, bool, bool);
 
 	void glPaintRectangle (const GLScreenPaintAttrib&,
 			       const GLMatrix&, CompOutput *);
