@@ -327,6 +327,7 @@ GridScreen::initiateCommon (CompAction         *action,
 	    gw->isGridMaximized = false;
 		for (unsigned int i = 0; i < animations.size (); i++)
 			animations.at (i).fadingOut = true;
+	    gw->lastTarget = where;
 	}
 
 	/* This centers a window if it could not be resized to the desired
@@ -348,8 +349,6 @@ GridScreen::initiateCommon (CompAction         *action,
 
 	    centerCheck = false;
 	}
-
-	gw->lastTarget = where;
     }
 
     return true;
@@ -696,8 +695,18 @@ GridWindow::moveNotify (int dx, int dy, bool immediate)
 {
     window->moveNotify (dx, dy, immediate);
 
-    pointerBufDx += dx;
-    pointerBufDy += dy;
+    if (isGridResized)
+    {
+	pointerBufDx += dx;
+	pointerBufDy += dy;
+
+	/* Do not allow the window to be moved while it
+	 * is resized */
+
+	window->moveNotifySetEnabled (this, false);
+	window->move (-dx, -dy);
+	window->moveNotifySetEnabled (this, true);
+    }
 }
 
 void
@@ -752,6 +761,7 @@ GridScreen::restoreWindow (CompAction         *action,
     }
     gw->isGridResized = false;
     gw->resizeCount = 0;
+    gw->lastTarget = GridUnknown;
 
     return true;
 }
