@@ -169,6 +169,8 @@ class GridWindow :
 	void ungrabNotify ();
 
 	void moveNotify (int, int, bool);
+
+	void stateChangeNotify (unsigned int);
 };
 
 #define GRID_WINDOW(w) \

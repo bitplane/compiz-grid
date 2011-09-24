@@ -700,6 +700,19 @@ GridWindow::moveNotify (int dx, int dy, bool immediate)
     pointerBufDy += dy;
 }
 
+void
+GridWindow::stateChangeNotify (unsigned int lastState)
+{
+    if (lastState & MAXIMIZE_STATE &&
+	!(window->state () & MAXIMIZE_STATE))
+	lastTarget = GridUnknown;
+    else if (!(lastState & MAXIMIZE_STATE) &&
+	     window->state () & MAXIMIZE_STATE)
+	lastTarget = GridMaximize;
+
+    window->stateChangeNotify (lastState);
+} 
+
 bool
 GridScreen::restoreWindow (CompAction         *action,
 			   CompAction::State  state,
