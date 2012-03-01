@@ -538,6 +538,11 @@ GridScreen::handleEvent (XEvent *event)
     else
 	edge = NoEdge;
 
+
+    /* Save the last desired slot, it may change if the output or region changes */
+
+    lastSlot = desiredSlot;
+
     /* Detect when cursor enters another output */
 
     currentWorkarea = screen->getWorkareaForOutput
@@ -559,7 +564,6 @@ GridScreen::handleEvent (XEvent *event)
 
     if (lastEdge != edge)
     {
-		lastSlot = desiredSlot;
 
 		if (edge == NoEdge)
 			desiredSlot.setGeometry (0, 0, 0, 0);
