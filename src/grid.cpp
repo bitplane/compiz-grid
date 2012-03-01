@@ -322,8 +322,8 @@ GridScreen::initiateCommon (CompAction         *action,
 	    cw->configureXWindow (CWX | CWY | CWWidth | CWHeight, &xwc);
 	    gw->isGridResized = true;
 	    gw->isGridMaximized = false;
-		for (unsigned int i = 0; i < animations.size (); i++)
-			animations.at (i).fadingOut = true;
+	    for (unsigned int i = 0; i < animations.size (); i++)
+		animations.at (i).fadingOut = true;
 	}
 
 	/* This centers a window if it could not be resized to the desired
@@ -359,12 +359,12 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
 {
     CompRect rect;
     GLMatrix sTransform (transform);
-	std::vector<Animation>::iterator iter;
+    std::vector<Animation>::iterator iter;
 
     getPaintRectangle (rect);
 
-	for (unsigned int i = 0; i < animations.size (); i++)
-		setCurrentRect (animations.at (i));
+    for (unsigned int i = 0; i < animations.size (); i++)
+	setCurrentRect (animations.at (i));
 
     glPushMatrix ();
 
@@ -375,60 +375,60 @@ GridScreen::glPaintRectangle (const GLScreenPaintAttrib &sAttrib,
     glDisableClientState (GL_TEXTURE_COORD_ARRAY);
     glEnable (GL_BLEND);
 
-	for (iter = animations.begin (); iter != animations.end () && animating; iter++)
-	{
-		GLushort *color;
-		Animation& anim = *iter;
+    for (iter = animations.begin (); iter != animations.end () && animating; iter++)
+    {
+	GLushort *color;
+	Animation& anim = *iter;
 
-		color = optionGetFillColor ();
-		glColor4us (anim.opacity * color[0], anim.opacity * color[1],
-					anim.opacity * color[2], anim.opacity * color[3]);
+	color = optionGetFillColor ();
+	glColor4us (anim.opacity * color[0], anim.opacity * color[1],
+				anim.opacity * color[2], anim.opacity * color[3]);
 
-		/* fill rectangle */
-		glRecti (anim.currentRect.x1 (), anim.currentRect.y2 (),
-				 anim.currentRect.x2 (), anim.currentRect.y1 ());
+	/* fill rectangle */
+	glRecti (anim.currentRect.x1 (), anim.currentRect.y2 (),
+			 anim.currentRect.x2 (), anim.currentRect.y1 ());
 
-		/* Set outline rect smaller to avoid damage issues */
-		anim.currentRect.setGeometry (anim.currentRect.x () + 1,
-									  anim.currentRect.y () + 1,
-									  anim.currentRect.width () - 2,
-									  anim.currentRect.height () - 2);
+	/* Set outline rect smaller to avoid damage issues */
+	anim.currentRect.setGeometry (anim.currentRect.x () + 1,
+								  anim.currentRect.y () + 1,
+								  anim.currentRect.width () - 2,
+								  anim.currentRect.height () - 2);
+
+	/* draw outline */
+	color = optionGetOutlineColor ();
+	glColor4us (anim.opacity * color[0], anim.opacity * color[1],
+				anim.opacity * color[2], anim.opacity * color[3]);
+
+	glLineWidth (2.0);
+
+	glBegin (GL_LINE_LOOP);
+	glVertex2i (anim.currentRect.x1 (),	anim.currentRect.y1 ());
+	glVertex2i (anim.currentRect.x2 (),	anim.currentRect.y1 ());
+	glVertex2i (anim.currentRect.x2 (),	anim.currentRect.y2 ());
+	glVertex2i (anim.currentRect.x1 (),	anim.currentRect.y2 ());
+	glEnd ();
+    }
+
+    if (!animating)
+    {
+	/* fill rectangle */
+	glColor4usv (optionGetFillColor ());
+	glRecti (rect.x1 (), rect.y2 (), rect.x2 (), rect.y1 ());
+
+	/* Set outline rect smaller to avoid damage issues */
+	rect.setGeometry (rect.x () + 1, rect.y () + 1,
+			  rect.width () - 2, rect.height () - 2);
 
 		/* draw outline */
-		color = optionGetOutlineColor ();
-		glColor4us (anim.opacity * color[0], anim.opacity * color[1],
-					anim.opacity * color[2], anim.opacity * color[3]);
-
-		glLineWidth (2.0);
-
-		glBegin (GL_LINE_LOOP);
-		glVertex2i (anim.currentRect.x1 (),	anim.currentRect.y1 ());
-		glVertex2i (anim.currentRect.x2 (),	anim.currentRect.y1 ());
-		glVertex2i (anim.currentRect.x2 (),	anim.currentRect.y2 ());
-		glVertex2i (anim.currentRect.x1 (),	anim.currentRect.y2 ());
-		glEnd ();
-	}
-
-	if (!animating)
-	{
-		/* fill rectangle */
-		glColor4usv (optionGetFillColor ());
-		glRecti (rect.x1 (), rect.y2 (), rect.x2 (), rect.y1 ());
-
-		/* Set outline rect smaller to avoid damage issues */
-		rect.setGeometry (rect.x () + 1, rect.y () + 1,
-				  rect.width () - 2, rect.height () - 2);
-
-		/* draw outline */
-		glColor4usv (optionGetOutlineColor ());
-		glLineWidth (2.0);
-		glBegin (GL_LINE_LOOP);
-		glVertex2i (rect.x1 (), rect.y1 ());
-		glVertex2i (rect.x2 (), rect.y1 ());
-		glVertex2i (rect.x2 (), rect.y2 ());
-		glVertex2i (rect.x1 (), rect.y2 ());
-		glEnd ();
-	}
+	glColor4usv (optionGetOutlineColor ());
+	glLineWidth (2.0);
+	glBegin (GL_LINE_LOOP);
+	glVertex2i (rect.x1 (), rect.y1 ());
+	glVertex2i (rect.x2 (), rect.y1 ());
+	glVertex2i (rect.x2 (), rect.y2 ());
+	glVertex2i (rect.x1 (), rect.y2 ());
+	glEnd ();
+    }
 
     /* clean up */
     glColor4usv (defaultColor);
@@ -565,45 +565,45 @@ GridScreen::handleEvent (XEvent *event)
     if (lastEdge != edge)
     {
 
-		if (edge == NoEdge)
-			desiredSlot.setGeometry (0, 0, 0, 0);
+	if (edge == NoEdge)
+		desiredSlot.setGeometry (0, 0, 0, 0);
 
-		if (cScreen)
-			cScreen->damageRegion (desiredSlot);
+	if (cScreen)
+		cScreen->damageRegion (desiredSlot);
 
-		initiateCommon (0, 0, o, edgeToGridType (), false);
+	initiateCommon (0, 0, o, edgeToGridType (), false);
 
-		if (cScreen)
-			cScreen->damageRegion (desiredSlot);
+	if (cScreen)
+		cScreen->damageRegion (desiredSlot);
 
-		if (lastSlot != desiredSlot)
+	if (lastSlot != desiredSlot)
+	{
+		if (animations.size ())
+			/* Begin fading previous animation instance */
+			animations.at (animations.size () - 1).fadingOut = true;
+
+		if (edge != NoEdge)
 		{
-			if (animations.size ())
-				/* Begin fading previous animation instance */
-				animations.at (animations.size () - 1).fadingOut = true;
+			CompWindow *cw = screen->findWindow (screen->activeWindow ());
+			animations.push_back (Animation ());
+			int current = animations.size () - 1;
+			animations.at (current).fromRect	= cw->serverBorderRect ();
+			animations.at (current).currentRect	= cw->serverBorderRect ();
+			animations.at (current).timer = animations.at (current).duration;
+			animations.at (current).targetRect = desiredSlot;
 
-			if (edge != NoEdge)
+			if (lastEdge == NoEdge || !animating)
 			{
-				CompWindow *cw = screen->findWindow (screen->activeWindow ());
-				animations.push_back (Animation ());
-				int current = animations.size () - 1;
-				animations.at (current).fromRect	= cw->serverBorderRect ();
-				animations.at (current).currentRect	= cw->serverBorderRect ();
-				animations.at (current).timer = animations.at (current).duration;
-				animations.at (current).targetRect = desiredSlot;
-
-				if (lastEdge == NoEdge || !animating)
-				{
-					/* Cursor has entered edge region from non-edge region */
-					animating = true;
-					glScreen->glPaintOutputSetEnabled (this, true);
-					cScreen->preparePaintSetEnabled (this, true);
-					cScreen->donePaintSetEnabled (this, true);
-				}
+				/* Cursor has entered edge region from non-edge region */
+				animating = true;
+				glScreen->glPaintOutputSetEnabled (this, true);
+				cScreen->preparePaintSetEnabled (this, true);
+				cScreen->donePaintSetEnabled (this, true);
 			}
 		}
+	}
 
-		lastEdge = edge;
+	lastEdge = edge;
     }
 
     GRID_WINDOW (screen->findWindow
@@ -760,7 +760,7 @@ GridScreen::preparePaint (int msSinceLastPaint)
 		anim.progress =	(anim.duration - anim.timer) / anim.duration;
 	}
 
-    cScreen->preparePaint (msSinceLastPaint);
+	cScreen->preparePaint (msSinceLastPaint);
 }
 
 void
@@ -823,7 +823,7 @@ GridScreen::GridScreen (CompScreen *screen) :
     currentWorkarea = lastWorkarea = screen->getWorkareaForOutput
 			    (screen->outputDeviceForPoint (pointerX, pointerY));
 
-	animations.clear ();
+    animations.clear ();
 
 #define GRIDSET(opt,where,resize)					       \
     optionSet##opt##Initiate (boost::bind (&GridScreen::initiateCommon, this,  \
