@@ -1,6 +1,7 @@
 Gaz Davidson <gaz@bitplane.net>	2012-03-01
 
     Fix bug 77, tidy up tabs and spaces
+    Fix a bug where top left grid doesn't work on second monitor
 
 Sam Spilsbury <sam.spilsbury@canonical.com>	2011-07-14
 

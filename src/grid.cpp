@@ -515,8 +515,8 @@ GridScreen::handleEvent (XEvent *event)
              pointerX > (out.x () + out.width () - optionGetRightEdgeThreshold()))
 	edge = BottomRight;
     /* Top Left */
-    else if (pointerY < optionGetTopEdgeThreshold() &&
-	    pointerX < optionGetLeftEdgeThreshold())
+    else if (pointerY < (out.y () + optionGetTopEdgeThreshold()) &&
+	     pointerX < (out.x () + optionGetLeftEdgeThreshold()))
 	edge = TopLeft;
     /* Top Right */
     else if (pointerY < out.y () + optionGetTopEdgeThreshold() &&
